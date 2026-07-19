@@ -4,61 +4,51 @@ import AuthPage from './pages/AuthPage.jsx'
 import BuilderPage from './pages/BuilderPage.jsx'
 import AdminPage from './pages/AdminPage.jsx'
 import PaymentPage from './pages/PaymentPage.jsx'
-
-// Simple in-memory store (replace with backend/localStorage for prod)
-const ADMIN_CODE = 'BDS2024'
+import * as api from './api.js'
 
 export default function App() {
   const [page, setPage] = useState('landing')
   const [user, setUser] = useState(null)
   const [cvData, setCvData] = useState(null)
-  const [orders, setOrders] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('bds_orders') || '[]') } catch { return [] }
-  })
+  const [orders, setOrders] = useState([])
+  const [userOrder, setUserOrder] = useState(null)
 
-  const saveOrders = (o) => {
-    setOrders(o)
-    localStorage.setItem('bds_orders', JSON.stringify(o))
-  }
+  const refreshOrders = () => api.fetchOrders().then(setOrders).catch(() => setOrders([]))
+  const refreshUserOrder = (email) => api.fetchPaidOrder(email).then(setUserOrder).catch(() => setUserOrder(null))
+
+  useEffect(() => {
+    if (page === 'builder' && user?.email) refreshUserOrder(user.email)
+  }, [page, user?.email])
 
   const login = (name, email, mode) => {
-    const u = { name, email, mode, id: Date.now() }
-    setUser(u)
+    setUser({ name, email, mode, id: Date.now() })
     setPage('builder')
   }
 
-  const loginAdmin = (code) => {
-    if (code === ADMIN_CODE) { setUser({ admin: true }); setPage('admin') }
+  const loginAdmin = async (code) => {
+    const ok = await api.loginAdmin(code)
+    if (ok) { setUser({ admin: true }); refreshOrders(); setPage('admin') }
     else alert('Code incorrect')
   }
 
   const goPayment = (data) => { setCvData(data); setPage('payment') }
 
-  const confirmPayment = (method) => {
-    const order = {
-      id: 'ORD-' + Date.now(),
-      client: user,
-      method,
-      amount: user?.mode === 'auto' ? 2000 : 3000,
-      date: new Date().toISOString(),
-      status: 'pending',
-      cvData
-    }
-    saveOrders([...orders, order])
+  const confirmPayment = async (method) => {
+    const amount = user?.mode === 'auto' ? 500 : 3000
+    const { id } = await api.createOrder({ client: user, method, amount, cvData })
     setPage('builder')
-    return order.id
+    return id
   }
 
-  const validatePayment = (id) => {
-    saveOrders(orders.map(o => o.id === id ? { ...o, status: 'paid' } : o))
+  const validatePayment = async (id) => {
+    await api.validateOrder(id)
+    refreshOrders()
   }
-
-  const userOrder = user ? orders.find(o => o.client?.email === user.email && o.status === 'paid') : null
 
   if (page === 'landing') return <LandingPage onStart={() => setPage('auth')} onAdmin={() => setPage('auth-admin')} />
   if (page === 'auth') return <AuthPage onLogin={login} onBack={() => setPage('landing')} />
   if (page === 'auth-admin') return <AuthPage admin onLoginAdmin={loginAdmin} onBack={() => setPage('landing')} />
-  if (page === 'admin') return <AdminPage orders={orders} onValidate={validatePayment} onLogout={() => { setUser(null); setPage('landing') }} />
+  if (page === 'admin') return <AdminPage orders={orders} onValidate={validatePayment} onRefresh={refreshOrders} onLogout={() => { setUser(null); setPage('landing') }} />
   if (page === 'payment') return <PaymentPage user={user} cvData={cvData} onConfirm={confirmPayment} onBack={() => setPage('builder')} />
   if (page === 'builder') return (
     <BuilderPage

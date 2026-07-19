@@ -10,10 +10,10 @@ export default function PaymentPage({ user, cvData, onConfirm, onBack }) {
   const [method, setMethod] = useState('')
   const [done, setDone] = useState(false)
   const [orderId, setOrderId] = useState('')
-  const amount = user?.mode === 'auto' ? 2000 : 3000
+  const amount = user?.mode === 'auto' ? 500 : 3000
 
-  const handleConfirm = () => {
-    const id = onConfirm(method)
+  const handleConfirm = async () => {
+    const id = await onConfirm(method)
     setOrderId(id)
     setDone(true)
   }

@@ -57,7 +57,7 @@ export default function AuthPage({ onLogin, onLoginAdmin, onBack, admin }) {
             </div>
             <div>
               <div style={{ fontWeight: 600, fontSize: 14 }}>Je remplis moi-même</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>2 000 FCFA</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>500 FCFA</div>
             </div>
           </div>
           <div style={S.modeOpt(mode === 'assist')} onClick={() => setMode('assist')}>

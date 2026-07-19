@@ -2,6 +2,24 @@ import React from 'react'
 
 const dot = (color) => <span style={{ display: 'inline-block', width: 4, height: 4, borderRadius: '50%', background: color, margin: '0 6px', verticalAlign: 'middle' }} />
 
+const EXTRA_FIELDS = [
+  { key: 'linkedin', icon: '🔗' },
+  { key: 'website', icon: '🌐' },
+  { key: 'nationalite', icon: '🌍' },
+  { key: 'permis', icon: '🚗' },
+  { key: 'visa', icon: '🛂' },
+  { key: 'piece', icon: '🪪' },
+  { key: 'disponibilite', icon: '📅' },
+]
+function extraItems(data) {
+  return EXTRA_FIELDS.filter(f => data.extras?.[f.key]).map(f => ({ icon: f.icon, text: data.extras[f.key] }))
+}
+
+function Avatar({ src, size = 54, style = {} }) {
+  if (!src) return null
+  return <img src={src} alt="" style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', ...style }} />
+}
+
 function SectionTitle({ text, color, style = {} }) {
   return (
     <div style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color, marginBottom: 5, marginTop: 10, ...style }}>
@@ -25,6 +43,33 @@ function ExpBlock({ item, titleColor, subColor, dotColor }) {
   )
 }
 
+function ExtraSections({ data, color, titleColor = '#111', textColor = '#444', subColor = '#666' }) {
+  const sections = data.extraSections || []
+  if (!sections.length) return null
+  return sections.map(sec => (
+    <React.Fragment key={sec.key}>
+      <SectionTitle text={sec.title} color={color} style={{ borderBottom: `0.5px solid ${color}55`, paddingBottom: 3 }} />
+      {sec.mode === 'text' && sec.text && <p style={{ fontSize: 8.5, color: textColor, lineHeight: 1.6 }}>{sec.text}</p>}
+      {sec.mode === 'tags' && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 4 }}>
+          {(sec.tags || []).map((t, i) => (
+            <span key={i} style={{ background: color + '15', border: `0.5px solid ${color}44`, borderRadius: 99, padding: '2px 8px', fontSize: 8, color }}>{t}</span>
+          ))}
+        </div>
+      )}
+      {sec.mode === 'list' && (sec.items || []).map((it, i) => (
+        (it.titre || it.sous || it.desc) && <div key={i} style={{ marginBottom: 6 }}>
+          <div style={{ fontSize: 9, fontWeight: 700, color: titleColor }}>
+            {it.titre}{it.date && <span style={{ fontWeight: 400, color: subColor, fontSize: 8 }}> — {it.date}</span>}
+          </div>
+          {it.sous && <div style={{ fontSize: 8, color: subColor, fontStyle: 'italic' }}>{it.sous}</div>}
+          {it.desc && <div style={{ fontSize: 8, color: textColor, marginTop: 1 }}>{it.desc}</div>}
+        </div>
+      ))}
+    </React.Fragment>
+  ))
+}
+
 function FormBlock({ item, titleColor, subColor, accentColor }) {
   return (
     <div style={{ marginBottom: 6 }}>
@@ -44,6 +89,7 @@ function SidebarLeft({ data, tpl }) {
       {/* Left */}
       <div style={{ width: LEFT, background: c.bg, color: c.text, padding: '0 12px 16px', flexShrink: 0 }}>
         <div style={{ background: c.primary, margin: '0 -12px', padding: '18px 14px 14px' }}>
+          {data.photo && <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}><Avatar src={data.photo} size={56} style={{ border: `2px solid ${c.accent}` }} /></div>}
           <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 2, lineHeight: 1.2 }}>{data.nom || 'VOTRE NOM'}</div>
           <div style={{ fontSize: 8.5, color: c.accent, marginBottom: 8 }}>{data.titre || 'Titre professionnel'}</div>
           <div style={{ fontSize: 7.5, opacity: 0.85, lineHeight: 1.8 }}>
@@ -51,6 +97,7 @@ function SidebarLeft({ data, tpl }) {
             {data.tel && <div>✆ {data.tel}</div>}
             {data.adresse && <div>📍 {data.adresse}</div>}
             {data.ddn && <div>🎂 {data.ddn}</div>}
+            {extraItems(data).map((it, i) => <div key={i}>{it.icon} {it.text}</div>)}
           </div>
         </div>
         {data.profil && <>
@@ -85,6 +132,7 @@ function SidebarLeft({ data, tpl }) {
           <SectionTitle text="Informations complémentaires" color={c.primary} style={{ borderBottom: `1.5px solid ${c.primary}`, paddingBottom: 3 }} />
           <div style={{ fontSize: 8.5, color: '#444', lineHeight: 1.6 }}>{data.autresInfos}</div>
         </>}
+        <ExtraSections data={data} color={c.primary} />
       </div>
     </div>
   )
@@ -113,16 +161,20 @@ function SidebarRight({ data, tpl }) {
           <SectionTitle text="Expériences" color={c.primary} style={{ borderBottom: `1px solid ${c.primary}`, paddingBottom: 2 }} />
           {data.experiences.map((e, i) => <ExpBlock key={i} item={e} titleColor="#111" subColor="#555" dotColor={c.accent} />)}
         </>}
+        <ExtraSections data={data} color={c.primary} />
       </div>
       <div style={{ width: RIGHT, background: c.bg, color: c.text, padding: '20px 12px 16px', flexShrink: 0 }}>
-        <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, marginBottom: 10 }}>
-          {(data.nom || 'N')[0]}
-        </div>
+        {data.photo ? <Avatar src={data.photo} size={50} style={{ marginBottom: 10 }} /> : (
+          <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, marginBottom: 10 }}>
+            {(data.nom || 'N')[0]}
+          </div>
+        )}
         <div style={{ fontSize: 7.5, lineHeight: 2, opacity: 0.85, marginBottom: 12 }}>
           {data.email && <div>✉ {data.email}</div>}
           {data.tel && <div>✆ {data.tel}</div>}
           {data.adresse && <div>📍 {data.adresse}</div>}
           {data.ddn && <div>🎂 {data.ddn}</div>}
+          {extraItems(data).map((it, i) => <div key={i}>{it.icon} {it.text}</div>)}
         </div>
         {data.competences?.length > 0 && <>
           <div style={{ fontSize: 7.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: c.accent, marginBottom: 5 }}>Compétences</div>
@@ -143,6 +195,7 @@ function Classic({ data, tpl }) {
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', minHeight: 780, padding: '0 0 16px' }}>
       <div style={{ textAlign: 'center', padding: '20px 24px 14px', borderBottom: `2px solid ${c.primary}` }}>
+        {data.photo && <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}><Avatar src={data.photo} size={60} style={{ border: `2px solid ${c.primary}` }} /></div>}
         <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: '0.03em', color: '#111', marginBottom: 3 }}>{data.nom || 'VOTRE NOM'}</div>
         <div style={{ fontSize: 9.5, color: c.primary, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{data.titre || 'Titre professionnel'}</div>
         <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 4, fontSize: 8.5, color: '#666' }}>
@@ -150,6 +203,7 @@ function Classic({ data, tpl }) {
           {data.tel && <>{dot(c.primary)}<span>{data.tel}</span></>}
           {data.adresse && <>{dot(c.primary)}<span>{data.adresse}</span></>}
           {data.ddn && <>{dot(c.primary)}<span>{data.ddn}</span></>}
+          {extraItems(data).map((it, i) => <React.Fragment key={i}>{dot(c.primary)}<span>{it.text}</span></React.Fragment>)}
         </div>
       </div>
       <div style={{ padding: '0 24px' }}>
@@ -186,6 +240,7 @@ function Classic({ data, tpl }) {
             {data.langues?.map((l, i) => <span key={i} style={{ background: c.accent + '33', border: `0.5px solid ${c.primary}44`, borderRadius: 99, padding: '2px 8px', fontSize: 8, color: c.primary }}>{l.langue} — {l.niveau}</span>)}
           </div>
         </>}
+        <ExtraSections data={data} color={c.primary} />
       </div>
     </div>
   )
@@ -196,14 +251,18 @@ function Elegant({ data, tpl }) {
   const c = tpl.colors
   return (
     <div style={{ fontFamily: "'Georgia', serif", minHeight: 780, background: c.bg, color: c.text, padding: '0 0 20px' }}>
-      <div style={{ padding: '22px 28px 16px', borderBottom: `1px solid ${c.primary}55` }}>
-        <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 4, color: c.text }}>{data.nom || 'VOTRE NOM'}</div>
-        <div style={{ fontSize: 9, color: c.accent, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>{data.titre || 'Titre professionnel'}</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 8, color: c.accent + 'cc' }}>
-          {data.email && <span>✉ {data.email}</span>}
-          {data.tel && <span>✆ {data.tel}</span>}
-          {data.adresse && <span>📍 {data.adresse}</span>}
+      <div style={{ padding: '22px 28px 16px', borderBottom: `1px solid ${c.primary}55`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 4, color: c.text }}>{data.nom || 'VOTRE NOM'}</div>
+          <div style={{ fontSize: 9, color: c.accent, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>{data.titre || 'Titre professionnel'}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 8, color: c.accent + 'cc' }}>
+            {data.email && <span>✉ {data.email}</span>}
+            {data.tel && <span>✆ {data.tel}</span>}
+            {data.adresse && <span>📍 {data.adresse}</span>}
+            {extraItems(data).map((it, i) => <span key={i}>{it.icon} {it.text}</span>)}
+          </div>
         </div>
+        {data.photo && <Avatar src={data.photo} size={56} style={{ border: `1px solid ${c.primary}`, flexShrink: 0 }} />}
       </div>
       <div style={{ display: 'flex' }}>
         <div style={{ flex: 1, padding: '14px 16px 0 28px' }}>
@@ -221,6 +280,7 @@ function Elegant({ data, tpl }) {
               </div>
             ))}
           </>}
+          <ExtraSections data={data} color={c.accent} titleColor={c.text} textColor={c.rtext + 'cc'} subColor={c.accent} />
         </div>
         <div style={{ width: 150, padding: '14px 16px 0 12px', borderLeft: `1px solid ${c.primary}33` }}>
           {data.formations?.length > 0 && <>
@@ -254,12 +314,14 @@ function CreativeGradient({ data, tpl }) {
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', minHeight: 780, background: '#fff' }}>
       <div style={{ background: c.bg, color: '#fff', padding: '20px 24px 28px', position: 'relative' }}>
-        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>{data.nom || 'VOTRE NOM'}</div>
+        {data.photo && <Avatar src={data.photo} size={54} style={{ position: 'absolute', top: 20, right: 24, border: '2px solid rgba(255,255,255,0.5)' }} />}
+        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 2, maxWidth: data.photo ? '75%' : 'none' }}>{data.nom || 'VOTRE NOM'}</div>
         <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.78)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{data.titre || 'Titre professionnel'}</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: 8, color: 'rgba(255,255,255,0.85)' }}>
           {data.email && <span>✉ {data.email}</span>}
           {data.tel && <span>✆ {data.tel}</span>}
           {data.adresse && <span>📍 {data.adresse}</span>}
+          {extraItems(data).map((it, i) => <span key={i}>{it.icon} {it.text}</span>)}
         </div>
       </div>
       <div style={{ padding: '14px 24px 16px' }}>
@@ -301,6 +363,7 @@ function CreativeGradient({ data, tpl }) {
             {data.langues?.map((l, i) => <span key={i} style={{ background: c.primary + '15', border: `0.5px solid ${c.primary}`, borderRadius: 99, padding: '2px 8px', fontSize: 8, color: c.primary }}>{l.langue} — {l.niveau}</span>)}
           </div>
         </>}
+        <ExtraSections data={data} color={c.primary} />
       </div>
     </div>
   )
@@ -311,14 +374,18 @@ function Minimal({ data, tpl }) {
   const c = tpl.colors
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', minHeight: 780, background: c.bg, padding: '0 0 20px' }}>
-      <div style={{ borderLeft: `4px solid ${c.primary}`, padding: '18px 24px 14px 20px' }}>
-        <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: c.primary, marginBottom: 2 }}>{data.nom || 'VOTRE NOM'}</div>
-        <div style={{ fontSize: 9, color: c.accent, marginBottom: 8 }}>{data.titre || 'Titre professionnel'}</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: 8, color: '#888' }}>
-          {data.email && <span>{data.email}</span>}
-          {data.tel && <span>{data.tel}</span>}
-          {data.adresse && <span>{data.adresse}</span>}
-          {data.ddn && <span>{data.ddn}</span>}
+      <div style={{ borderLeft: `4px solid ${c.primary}`, padding: '18px 24px 14px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+        {data.photo && <Avatar src={data.photo} size={50} style={{ flexShrink: 0 }} />}
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: c.primary, marginBottom: 2 }}>{data.nom || 'VOTRE NOM'}</div>
+          <div style={{ fontSize: 9, color: c.accent, marginBottom: 8 }}>{data.titre || 'Titre professionnel'}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: 8, color: '#888' }}>
+            {data.email && <span>{data.email}</span>}
+            {data.tel && <span>{data.tel}</span>}
+            {data.adresse && <span>{data.adresse}</span>}
+            {data.ddn && <span>{data.ddn}</span>}
+            {extraItems(data).map((it, i) => <span key={i}>{it.text}</span>)}
+          </div>
         </div>
       </div>
       <div style={{ padding: '0 24px' }}>
@@ -355,6 +422,7 @@ function Minimal({ data, tpl }) {
             {data.langues?.map((l, i) => <span key={i} style={{ background: c.primary + '18', border: `0.5px solid ${c.primary}66`, borderRadius: 99, padding: '2px 8px', fontSize: 8, color: c.primary }}>{l.langue} — {l.niveau}</span>)}
           </div>
         </>}
+        <ExtraSections data={data} color={c.primary} />
       </div>
     </div>
   )
@@ -365,7 +433,8 @@ function DoubleBand({ data, tpl }) {
   const c = tpl.colors
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', minHeight: 780 }}>
-      <div style={{ background: c.bg, color: '#fff', padding: '16px 24px 12px' }}>
+      <div style={{ background: c.bg, color: '#fff', padding: '16px 24px 12px', position: 'relative' }}>
+        {data.photo && <Avatar src={data.photo} size={46} style={{ position: 'absolute', top: 14, right: 24 }} />}
         <div style={{ fontSize: 19, fontWeight: 700, marginBottom: 1 }}>{data.nom || 'VOTRE NOM'}</div>
         <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{data.titre || 'Titre professionnel'}</div>
       </div>
@@ -374,6 +443,7 @@ function DoubleBand({ data, tpl }) {
         {data.tel && <span>✆ {data.tel}</span>}
         {data.adresse && <span>📍 {data.adresse}</span>}
         {data.ddn && <span>🎂 {data.ddn}</span>}
+        {extraItems(data).map((it, i) => <span key={i}>{it.icon} {it.text}</span>)}
       </div>
       <div style={{ display: 'flex' }}>
         <div style={{ flex: 1, padding: '14px 16px 0 24px' }}>
@@ -389,6 +459,7 @@ function DoubleBand({ data, tpl }) {
             <SectionTitle text="Expériences" color={c.bg} style={{ borderBottom: `1.5px solid ${c.bg}`, paddingBottom: 3 }} />
             {data.experiences.map((e, i) => <ExpBlock key={i} item={e} titleColor="#111" subColor="#555" dotColor={c.bg} />)}
           </>}
+          <ExtraSections data={data} color={c.bg} />
         </div>
         <div style={{ width: 150, padding: '14px 16px 0 12px', background: '#f8f8f8', borderLeft: `3px solid ${c.accent}` }}>
           {data.competences?.length > 0 && <>
@@ -413,13 +484,15 @@ function Timeline({ data, tpl }) {
   const c = tpl.colors
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', minHeight: 780, padding: '0 0 20px' }}>
-      <div style={{ background: c.primary, color: '#fff', padding: '18px 24px 14px' }}>
-        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>{data.nom || 'VOTRE NOM'}</div>
+      <div style={{ background: c.primary, color: '#fff', padding: '18px 24px 14px', position: 'relative' }}>
+        {data.photo && <Avatar src={data.photo} size={50} style={{ position: 'absolute', top: 16, right: 24, border: '2px solid rgba(255,255,255,0.5)' }} />}
+        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 2, maxWidth: data.photo ? '75%' : 'none' }}>{data.nom || 'VOTRE NOM'}</div>
         <div style={{ fontSize: 9, color: c.accent, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>{data.titre || 'Titre professionnel'}</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: 8, color: 'rgba(255,255,255,0.75)' }}>
           {data.email && <span>✉ {data.email}</span>}
           {data.tel && <span>✆ {data.tel}</span>}
           {data.adresse && <span>📍 {data.adresse}</span>}
+          {extraItems(data).map((it, i) => <span key={i}>{it.icon} {it.text}</span>)}
         </div>
       </div>
       <div style={{ display: 'flex', padding: '14px 24px 0' }}>
@@ -441,6 +514,7 @@ function Timeline({ data, tpl }) {
               ))}
             </div>
           </>}
+          <ExtraSections data={data} color={c.primary} />
         </div>
         <div style={{ width: 145, paddingLeft: 14, borderLeft: `1px solid #eee` }}>
           {data.formations?.length > 0 && <>

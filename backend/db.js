@@ -1,13 +1,13 @@
-import Database from 'better-sqlite3'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import pg from 'pg'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const db = new Database(path.join(__dirname, 'data.sqlite'))
+const { Pool } = pg
 
-db.pragma('journal_mode = WAL')
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/cvbuilder',
+  ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false
+})
 
-db.exec(`
+await pool.query(`
   CREATE TABLE IF NOT EXISTS orders (
     id TEXT PRIMARY KEY,
     client_name TEXT NOT NULL,
@@ -15,10 +15,10 @@ db.exec(`
     mode TEXT NOT NULL,
     method TEXT NOT NULL,
     amount INTEGER NOT NULL,
-    date TEXT NOT NULL,
+    date TIMESTAMPTZ NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',
-    cv_data TEXT NOT NULL
+    cv_data JSONB NOT NULL
   )
 `)
 
-export default db
+export default pool

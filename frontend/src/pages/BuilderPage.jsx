@@ -2,7 +2,30 @@ import React, { useState, useRef } from 'react'
 import { TEMPLATES } from '../templates/templateList.js'
 import CVRenderer from '../templates/CVRenderer.jsx'
 
-const STEPS = ['Template', 'Identité', 'Formation', 'Expériences', 'Compétences', 'Télécharger']
+const STEPS = ['Template', 'Identité', 'Formation', 'Expériences', 'Compétences', 'Langues', 'Autres sections', 'Télécharger']
+
+const SECTION_CATALOG = [
+  { type: 'certificats', label: 'Certificats', icon: '🎖️', mode: 'list', itemLabels: { titre: 'Nom du certificat', sous: 'Organisme', date: 'Date', desc: '' } },
+  { type: 'interets', label: 'Centres d\'intérêt', icon: '🎯', mode: 'tags' },
+  { type: 'projets', label: 'Projets', icon: '📁', mode: 'list', itemLabels: { titre: 'Titre du projet', sous: '', date: 'Période', desc: 'Description' } },
+  { type: 'cours', label: 'Cours', icon: '📚', mode: 'list', itemLabels: { titre: 'Nom du cours', sous: 'Institution', date: 'Date', desc: '' } },
+  { type: 'distinctions', label: 'Distinctions', icon: '🏆', mode: 'list', itemLabels: { titre: 'Titre', sous: 'Décerné par', date: 'Date', desc: '' } },
+  { type: 'organisations', label: 'Organisations / Bénévolat', icon: '🏠', mode: 'list', itemLabels: { titre: 'Organisation', sous: 'Rôle', date: 'Période', desc: '' } },
+  { type: 'publications', label: 'Publications', icon: '📖', mode: 'list', itemLabels: { titre: 'Titre', sous: 'Publié dans', date: 'Date', desc: '' } },
+  { type: 'references', label: 'Références', icon: '🔗', mode: 'list', itemLabels: { titre: 'Nom', sous: 'Contact', date: '', desc: 'Relation professionnelle' } },
+  { type: 'declaration', label: 'Déclaration', icon: '✍️', mode: 'text' },
+  { type: 'custom', label: 'Section personnalisée', icon: '🧩', mode: 'list', itemLabels: { titre: 'Titre', sous: '', date: '', desc: 'Description' } },
+]
+
+const EXTRA_DETAILS = [
+  { key: 'linkedin', label: 'LinkedIn', placeholder: 'linkedin.com/in/votre-profil' },
+  { key: 'website', label: 'Site web', placeholder: 'votresite.com' },
+  { key: 'nationalite', label: 'Nationalité', placeholder: 'Sénégalaise' },
+  { key: 'permis', label: 'Permis de conduire', placeholder: 'Catégorie B' },
+  { key: 'visa', label: 'Visa', placeholder: 'Schengen valide jusqu\'en 2027' },
+  { key: 'piece', label: 'Passeport / CNI', placeholder: 'Numéro ou statut' },
+  { key: 'disponibilite', label: 'Disponibilité', placeholder: 'Immédiate' },
+]
 
 const categories = [...new Set(TEMPLATES.map(t => t.category))]
 
@@ -61,19 +84,28 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
   const [filterCat, setFilterCat] = useState('Tous')
   const [data, setData] = useState({
     nom: user?.name || '', titre: '', email: user?.email || '',
-    tel: '', adresse: '', ddn: '', profil: '',
+    tel: '', adresse: '', ddn: '', profil: '', photo: '',
     formations: [{ annee: '', diplome: '', etablissement: '' }],
     experiences: [{ periode: '', poste: '', lieu: '', taches: '' }],
     competences: [],
     competencesRaw: '',
     langues: [{ langue: '', niveau: '' }],
-    autresInfos: ''
+    autresInfos: '',
+    extras: {},
+    extraSections: []
   })
+  const [visibleExtras, setVisibleExtras] = useState([])
   const [showPayWall, setShowPayWall] = useState(false)
   const printRef = useRef()
 
   const tpl = TEMPLATES.find(t => t.id === tplId) || TEMPLATES[0]
-  const cvData = { ...data, competences: data.competencesRaw.split(',').map(s => s.trim()).filter(Boolean) }
+  const cvData = {
+    ...data,
+    competences: data.competencesRaw.split(',').map(s => s.trim()).filter(Boolean),
+    extraSections: data.extraSections.map(s => s.mode === 'tags'
+      ? { ...s, tags: (s.tagsRaw || '').split(',').map(t => t.trim()).filter(Boolean) }
+      : s)
+  }
 
   const set = (k, v) => setData(d => ({ ...d, [k]: v }))
   const setFormation = (i, k, v) => {
@@ -91,6 +123,46 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
   const removeExp = (i) => set('experiences', data.experiences.filter((_, j) => j !== i))
   const addLangue = () => set('langues', [...data.langues, { langue: '', niveau: '' }])
   const removeLangue = (i) => set('langues', data.langues.filter((_, j) => j !== i))
+
+  const setExtra = (key, value) => setData(d => ({ ...d, extras: { ...d.extras, [key]: value } }))
+  const showExtra = (key) => setVisibleExtras(v => [...v, key])
+  const hideExtra = (key) => { setVisibleExtras(v => v.filter(k => k !== key)); setExtra(key, '') }
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => set('photo', reader.result)
+    reader.readAsDataURL(file)
+  }
+
+  const addSection = (catalogEntry) => {
+    const section = {
+      key: catalogEntry.type + '-' + Date.now(),
+      type: catalogEntry.type,
+      title: catalogEntry.label,
+      mode: catalogEntry.mode,
+      ...(catalogEntry.mode === 'list' && { items: [{ titre: '', sous: '', date: '', desc: '' }] }),
+      ...(catalogEntry.mode === 'tags' && { tags: [], tagsRaw: '' }),
+      ...(catalogEntry.mode === 'text' && { text: '' }),
+    }
+    set('extraSections', [...data.extraSections, section])
+  }
+  const removeSection = (key) => set('extraSections', data.extraSections.filter(s => s.key !== key))
+  const updateSection = (key, patch) => set('extraSections', data.extraSections.map(s => s.key === key ? { ...s, ...patch } : s))
+  const updateSectionItem = (key, i, field, value) => {
+    const sec = data.extraSections.find(s => s.key === key)
+    const items = [...sec.items]; items[i] = { ...items[i], [field]: value }
+    updateSection(key, { items })
+  }
+  const addSectionItem = (key) => {
+    const sec = data.extraSections.find(s => s.key === key)
+    updateSection(key, { items: [...sec.items, { titre: '', sous: '', date: '', desc: '' }] })
+  }
+  const removeSectionItem = (key, i) => {
+    const sec = data.extraSections.find(s => s.key === key)
+    updateSection(key, { items: sec.items.filter((_, j) => j !== i) })
+  }
 
   const handleDownload = () => {
     if (!isPaid) { setShowPayWall(true); return }
@@ -166,7 +238,7 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
         </div>
         <div style={S.userBadge}>
           <div style={{ color: 'rgba(255,255,255,0.7)', marginBottom: 3 }}>{user?.name}</div>
-          <div style={{ fontSize: 10, marginBottom: 6 }}>{user?.mode === 'auto' ? '2 000 FCFA · Autonome' : '3 000 FCFA · Assisté'}</div>
+          <div style={{ fontSize: 10, marginBottom: 6 }}>{user?.mode === 'auto' ? '500 FCFA · Autonome' : '3 000 FCFA · Assisté'}</div>
           {isPaid && <div style={{ fontSize: 10, color: '#4caf50', marginBottom: 4 }}>✓ Paiement validé</div>}
           <button onClick={onLogout} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 11, cursor: 'pointer', padding: 0 }}>Déconnexion</button>
         </div>
@@ -203,6 +275,28 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
             {/* STEP 1: Identité */}
             {step === 1 && (
               <>
+                <label style={S.label}>Photo (facultatif)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                  <div style={{
+                    width: 56, height: 56, borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
+                    background: 'var(--surface1)', border: '0.5px solid var(--border2)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    {data.photo ? (
+                      <img src={data.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: 20, color: 'var(--ink4)' }}>🙂</span>
+                    )}
+                  </div>
+                  <label style={{ ...S.btn, display: 'inline-block' }}>
+                    Choisir une photo
+                    <input type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
+                  </label>
+                  {data.photo && (
+                    <button style={{ ...S.btn, color: 'var(--danger)' }} onClick={() => set('photo', '')}>Supprimer</button>
+                  )}
+                </div>
+
                 <label style={S.label}>Nom complet</label>
                 <input style={S.input} placeholder="Prénom NOM" value={data.nom} onChange={e => set('nom', e.target.value)} />
                 <label style={S.label}>Titre / Poste visé</label>
@@ -217,6 +311,29 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
                 <input style={S.input} placeholder="01/01/2000" value={data.ddn} onChange={e => set('ddn', e.target.value)} />
                 <label style={S.label}>Profil / Résumé</label>
                 <textarea style={S.textarea} placeholder="Courte présentation en 2-3 phrases..." value={data.profil} onChange={e => set('profil', e.target.value)} />
+
+                <div style={{ marginTop: 4 }}>
+                  <div style={{ marginBottom: 8, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Ajouter des détails</div>
+                  {visibleExtras.map(key => {
+                    const field = EXTRA_DETAILS.find(f => f.key === key)
+                    return (
+                      <div key={key} style={S.blockCard}>
+                        <button style={S.removeBtn} onClick={() => hideExtra(key)}>×</button>
+                        <label style={S.label}>{field.label}</label>
+                        <input style={{ ...S.input, marginBottom: 0 }} placeholder={field.placeholder}
+                          value={data.extras[key] || ''} onChange={e => setExtra(key, e.target.value)} />
+                      </div>
+                    )
+                  })}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {EXTRA_DETAILS.filter(f => !visibleExtras.includes(f.key)).map(f => (
+                      <button key={f.key} onClick={() => showExtra(f.key)} style={{
+                        padding: '5px 12px', borderRadius: 99, fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                        border: '0.5px dashed var(--border2)', background: 'var(--surface1)', color: 'var(--ink3)'
+                      }}>+ {f.label}</button>
+                    ))}
+                  </div>
+                </div>
               </>
             )}
 
@@ -263,6 +380,12 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
               <>
                 <label style={S.label}>Compétences (séparées par des virgules)</label>
                 <textarea style={S.textarea} placeholder="Word, Excel, Comptabilité, Gestion..." value={data.competencesRaw} onChange={e => set('competencesRaw', e.target.value)} />
+              </>
+            )}
+
+            {/* STEP 5: Langues */}
+            {step === 5 && (
+              <>
                 <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Langues</div>
                 {data.langues.map((l, i) => (
                   <div key={i} style={S.blockCard}>
@@ -289,8 +412,77 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
               </>
             )}
 
-            {/* STEP 5: Télécharger */}
-            {step === 5 && (
+            {/* STEP 6: Sections additionnelles */}
+            {step === 6 && (
+              <>
+                {data.extraSections.map(sec => {
+                  const catalogEntry = SECTION_CATALOG.find(c => c.type === sec.type)
+                  return (
+                    <div key={sec.key} style={S.blockCard}>
+                      <button style={S.removeBtn} onClick={() => removeSection(sec.key)}>×</button>
+                      {sec.type === 'custom' ? (
+                        <input style={{ ...S.input, fontWeight: 600 }} placeholder="Titre de la section"
+                          value={sec.title} onChange={e => updateSection(sec.key, { title: e.target.value })} />
+                      ) : (
+                        <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10 }}>{catalogEntry.icon} {sec.title}</div>
+                      )}
+
+                      {sec.mode === 'text' && (
+                        <textarea style={{ ...S.textarea, marginBottom: 0 }} placeholder="Votre texte..."
+                          value={sec.text} onChange={e => updateSection(sec.key, { text: e.target.value })} />
+                      )}
+
+                      {sec.mode === 'tags' && (
+                        <textarea style={{ ...S.textarea, marginBottom: 0 }} placeholder="Lecture, voyages, football... (séparés par des virgules)"
+                          value={sec.tagsRaw} onChange={e => updateSection(sec.key, { tagsRaw: e.target.value })} />
+                      )}
+
+                      {sec.mode === 'list' && (
+                        <>
+                          {sec.items.map((it, i) => (
+                            <div key={i} style={{ ...S.blockCard, background: 'var(--surface)' }}>
+                              {sec.items.length > 1 && <button style={S.removeBtn} onClick={() => removeSectionItem(sec.key, i)}>×</button>}
+                              {catalogEntry.itemLabels.titre && (
+                                <input style={S.input} placeholder={catalogEntry.itemLabels.titre}
+                                  value={it.titre} onChange={e => updateSectionItem(sec.key, i, 'titre', e.target.value)} />
+                              )}
+                              {catalogEntry.itemLabels.sous && (
+                                <input style={S.input} placeholder={catalogEntry.itemLabels.sous}
+                                  value={it.sous} onChange={e => updateSectionItem(sec.key, i, 'sous', e.target.value)} />
+                              )}
+                              {catalogEntry.itemLabels.date && (
+                                <input style={S.input} placeholder={catalogEntry.itemLabels.date}
+                                  value={it.date} onChange={e => updateSectionItem(sec.key, i, 'date', e.target.value)} />
+                              )}
+                              {catalogEntry.itemLabels.desc && (
+                                <textarea style={{ ...S.textarea, marginBottom: 0 }} placeholder={catalogEntry.itemLabels.desc}
+                                  value={it.desc} onChange={e => updateSectionItem(sec.key, i, 'desc', e.target.value)} />
+                              )}
+                            </div>
+                          ))}
+                          <button style={S.addBtn} onClick={() => addSectionItem(sec.key)}>+ Ajouter</button>
+                        </>
+                      )}
+                    </div>
+                  )
+                })}
+
+                <div style={{ marginTop: 4 }}>
+                  <div style={{ marginBottom: 8, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Ajouter une section</div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {SECTION_CATALOG.filter(c => c.type === 'custom' || !data.extraSections.some(s => s.type === c.type)).map(c => (
+                      <button key={c.type} onClick={() => addSection(c)} style={{
+                        padding: '5px 12px', borderRadius: 99, fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                        border: '0.5px dashed var(--border2)', background: 'var(--surface1)', color: 'var(--ink3)'
+                      }}>+ {c.icon} {c.label}</button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* STEP 7: Télécharger */}
+            {step === 7 && (
               <div>
                 {isPaid ? (
                   <div style={{ background: '#d5f5e3', border: '0.5px solid #a9dfbf', borderRadius: 8, padding: 12, marginBottom: 14 }}>
@@ -301,7 +493,7 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
                   <div style={{ background: '#fef9e7', border: '0.5px solid #f9ca79', borderRadius: 8, padding: 12, marginBottom: 14 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#d68910', marginBottom: 3 }}>Paiement requis</div>
                     <div style={{ fontSize: 12, color: '#9a7d0a', marginBottom: 8 }}>
-                      Validez votre paiement de {user?.mode === 'auto' ? '2 000' : '3 000'} FCFA pour télécharger votre CV.
+                      Validez votre paiement de {user?.mode === 'auto' ? '500' : '3 000'} FCFA pour télécharger votre CV.
                     </div>
                     <button onClick={() => onPay(cvData)} style={{ background: '#d68910', color: '#fff', border: 'none', padding: '9px 18px', borderRadius: 99, fontSize: 13, fontWeight: 600, cursor: 'pointer', width: '100%' }}>
                       Procéder au paiement →
@@ -327,7 +519,7 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
           {/* Nav buttons */}
           <div style={S.navBtns}>
             {step > 0 && <button style={S.btn} onClick={() => setStep(s => s - 1)}>← Retour</button>}
-            {step < 5 && <button style={{ ...S.btnPrimary, marginLeft: 'auto' }} onClick={() => setStep(s => s + 1)}>Suivant →</button>}
+            {step < 7 && <button style={{ ...S.btnPrimary, marginLeft: 'auto' }} onClick={() => setStep(s => s + 1)}>Suivant →</button>}
           </div>
         </div>
 
@@ -352,7 +544,7 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
             <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
             <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, fontFamily: "'Space Grotesk', sans-serif" }}>Téléchargement verrouillé</div>
             <p style={{ fontSize: 13, color: '#666', lineHeight: 1.6, marginBottom: 20 }}>
-              Votre CV est prêt ! Pour télécharger le PDF, validez votre paiement de <strong>{user?.mode === 'auto' ? '2 000' : '3 000'} FCFA</strong> via Wave, Orange Money ou espèces.
+              Votre CV est prêt ! Pour télécharger le PDF, validez votre paiement de <strong>{user?.mode === 'auto' ? '500' : '3 000'} FCFA</strong> via Wave, Orange Money ou espèces.
             </p>
             <button onClick={() => { setShowPayWall(false); onPay(cvData) }} style={{ background: '#0a1628', color: '#fff', border: 'none', padding: '12px 28px', borderRadius: 99, fontWeight: 700, fontSize: 14, cursor: 'pointer', width: '100%', marginBottom: 8 }}>
               Payer maintenant →

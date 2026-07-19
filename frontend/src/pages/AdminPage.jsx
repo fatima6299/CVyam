@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 const STATUS = { pending: { label: 'En attente', color: '#d68910', bg: '#fef9e7' }, paid: { label: 'Validé', color: '#1e8449', bg: '#d5f5e3' } }
 
-export default function AdminPage({ orders, onValidate, onLogout }) {
+export default function AdminPage({ orders, onValidate, onRefresh, onLogout }) {
   const [filter, setFilter] = useState('all')
 
   const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter)
@@ -31,6 +31,7 @@ export default function AdminPage({ orders, onValidate, onLogout }) {
         <div style={S.logo}><span style={{ color: '#4fc3f7' }}>CV</span>Builder · Admin</div>
         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
           <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{orders.length} commande{orders.length > 1 ? 's' : ''} au total</span>
+          <button onClick={onRefresh} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '6px 14px', borderRadius: 99, fontSize: 12, cursor: 'pointer' }}>↻ Actualiser</button>
           <button onClick={onLogout} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '6px 14px', borderRadius: 99, fontSize: 12, cursor: 'pointer' }}>Déconnexion</button>
         </div>
       </div>

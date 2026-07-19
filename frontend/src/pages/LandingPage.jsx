@@ -1,4 +1,5 @@
 import React from 'react'
+import TemplateShowcase, { HeroFan } from '../components/TemplateShowcase.jsx'
 
 const features = [
   { icon: '🎨', title: '20 templates professionnels', desc: 'Modernes, classiques, créatifs — pour tous les profils' },
@@ -7,12 +8,27 @@ const features = [
   { icon: '🔒', title: 'Accès sécurisé', desc: 'Votre CV est privé et accessible uniquement par vous' },
 ]
 
+const steps = [
+  { n: '1', title: 'Choisissez un template', desc: 'Parcourez 20 modèles professionnels et sélectionnez celui qui vous ressemble.' },
+  { n: '2', title: 'Remplissez vos informations', desc: 'Un formulaire guidé étape par étape : identité, formations, expériences, compétences.' },
+  { n: '3', title: 'Prévisualisez en direct', desc: 'Votre CV se construit sous vos yeux, exactement comme il sera imprimé.' },
+  { n: '4', title: 'Téléchargez votre PDF', desc: 'Validez votre paiement (Wave, Orange Money ou espèces) et téléchargez votre CV.' },
+]
+
+const faqs = [
+  { q: 'Comment se fait le paiement ?', a: 'Après avoir créé votre CV, choisissez Wave, Orange Money ou espèces. Un administrateur BDS Services valide votre paiement, puis le téléchargement PDF est débloqué.' },
+  { q: 'Puis-je changer de template après paiement ?', a: 'Oui, vous pouvez changer de template et modifier votre contenu à tout moment depuis le builder — le PDF suit vos dernières modifications.' },
+  { q: 'Mes données sont-elles privées ?', a: 'Votre CV n\'est visible que par vous et par un administrateur BDS Services pour la validation du paiement. Il n\'est jamais partagé publiquement.' },
+  { q: 'Combien de temps pour créer mon CV ?', a: 'Comptez environ 10 minutes en mode Autonome. En mode Assisté, notre équipe rédige et optimise votre contenu pour vous.' },
+]
+
 const plans = [
-  { name: 'Autonome', price: '2 000', unit: 'FCFA', desc: 'Vous remplissez vous-même', features: ['Accès aux 20 templates', 'Formulaire guidé étape par étape', 'Prévisualisation en direct', 'Téléchargement PDF'], color: '#1a5276' },
+  { name: 'Autonome', price: '500', unit: 'FCFA', desc: 'Vous remplissez vous-même', features: ['Accès aux 20 templates', 'Formulaire guidé étape par étape', 'Prévisualisation en direct', 'Téléchargement PDF'], color: '#1a5276' },
   { name: 'Assisté', price: '3 000', unit: 'FCFA', desc: 'BDS s\'occupe de tout pour vous', features: ['Tout le plan Autonome', 'Rédaction professionnelle', 'Optimisation du contenu', 'Support WhatsApp'], color: '#117a65', badge: 'Recommandé' },
 ]
 
 export default function LandingPage({ onStart, onAdmin }) {
+  const [openFaq, setOpenFaq] = React.useState(null)
   return (
     <div style={{ minHeight: '100vh', background: '#0a1628', color: '#fff' }}>
       {/* Nav */}
@@ -27,22 +43,60 @@ export default function LandingPage({ onStart, onAdmin }) {
       </nav>
 
       {/* Hero */}
-      <div style={{ textAlign: 'center', padding: '5rem 2rem 3rem' }}>
-        <div style={{ display: 'inline-block', background: 'rgba(79,195,247,0.12)', border: '1px solid rgba(79,195,247,0.25)', borderRadius: 99, padding: '5px 16px', fontSize: 12, color: '#4fc3f7', marginBottom: '1.5rem' }}>
-          ✦ Créez votre CV professionnel en quelques minutes
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap',
+        gap: '2.5rem', padding: '5rem 2rem 3rem', maxWidth: 1100, margin: '0 auto'
+      }}>
+        <div style={{ flex: '1 1 420px', maxWidth: 560, textAlign: 'center' }}>
+          <div style={{ display: 'inline-block', background: 'rgba(79,195,247,0.12)', border: '1px solid rgba(79,195,247,0.25)', borderRadius: 99, padding: '5px 16px', fontSize: 12, color: '#4fc3f7', marginBottom: '1.5rem' }}>
+            ✦ Créez votre CV professionnel en quelques minutes
+          </div>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.2rem, 5vw, 3.8rem)', fontWeight: 700, lineHeight: 1.15, marginBottom: '1.2rem' }}>
+            Un CV qui <span style={{ color: '#4fc3f7' }}>fait la différence</span>, en moins de 10 minutes
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 16, maxWidth: 480, margin: '0 auto 2.5rem', lineHeight: 1.7 }}>
+            Choisissez parmi 20 templates professionnels, remplissez vos informations et téléchargez votre CV au format PDF.
+          </p>
+          <button onClick={onStart} style={{ background: '#4fc3f7', color: '#0a1628', border: 'none', padding: '14px 36px', borderRadius: 99, fontWeight: 700, fontSize: 16, fontFamily: "'Space Grotesk', sans-serif", letterSpacing: 0.3, transition: 'opacity 0.2s' }}
+            onMouseOver={e => e.target.style.opacity = 0.88}
+            onMouseOut={e => e.target.style.opacity = 1}>
+            Créer mon CV →
+          </button>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 12 }}>À partir de 500 FCFA · Paiement après création</div>
         </div>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.2rem, 5vw, 3.8rem)', fontWeight: 700, lineHeight: 1.15, marginBottom: '1.2rem', maxWidth: 700, margin: '0 auto 1.2rem' }}>
-          Un CV qui <span style={{ color: '#4fc3f7' }}>fait la différence</span>,<br/>en moins de 10 minutes
-        </h1>
-        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 16, maxWidth: 480, margin: '0 auto 2.5rem', lineHeight: 1.7 }}>
-          Choisissez parmi 20 templates professionnels, remplissez vos informations et téléchargez votre CV au format PDF.
-        </p>
-        <button onClick={onStart} style={{ background: '#4fc3f7', color: '#0a1628', border: 'none', padding: '14px 36px', borderRadius: 99, fontWeight: 700, fontSize: 16, fontFamily: "'Space Grotesk', sans-serif", letterSpacing: 0.3, transition: 'opacity 0.2s' }}
-          onMouseOver={e => e.target.style.opacity = 0.88}
-          onMouseOut={e => e.target.style.opacity = 1}>
-          Créer mon CV →
-        </button>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 12 }}>À partir de 2 000 FCFA · Paiement après création</div>
+        <div style={{ flex: '0 0 auto' }}>
+          <HeroFan />
+        </div>
+      </div>
+
+      {/* Template showcase */}
+      <div style={{ maxWidth: 1100, margin: '0 auto 4rem', padding: '0 2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.2rem' }}>
+          <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 22, fontWeight: 700, marginBottom: 6 }}>20 templates professionnels</h2>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13 }}>Moderne, Classique, Élégant, Créatif, Minimaliste, Corporate, Design</p>
+        </div>
+        <TemplateShowcase onSelect={onStart} />
+      </div>
+
+      {/* How it works */}
+      <div style={{ maxWidth: 1000, margin: '0 auto 4rem', padding: '0 2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Comment ça marche</h2>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14 }}>De la page blanche au PDF, en 4 étapes simples</p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
+          {steps.map(s => (
+            <div key={s.n} style={{ textAlign: 'center', padding: '0 8px' }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: '50%', background: 'rgba(79,195,247,0.12)',
+                border: '1px solid rgba(79,195,247,0.3)', color: '#4fc3f7', fontWeight: 700, fontSize: 15,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px'
+              }}>{s.n}</div>
+              <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 6 }}>{s.title}</div>
+              <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>{s.desc}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Features */}
@@ -78,6 +132,28 @@ export default function LandingPage({ onStart, onAdmin }) {
             Commencer maintenant →
           </button>
         </div>
+      </div>
+
+      {/* FAQ */}
+      <div style={{ maxWidth: 700, margin: '0 auto 5rem', padding: '0 2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.8rem' }}>
+          <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700 }}>Questions fréquentes</h2>
+        </div>
+        {faqs.map((f, i) => (
+          <div key={f.q} style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            <button onClick={() => setOpenFaq(openFaq === i ? null : i)} style={{
+              width: '100%', textAlign: 'left', background: 'none', border: 'none', color: '#fff',
+              padding: '16px 4px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+            }}>
+              {f.q}
+              <span style={{ color: '#4fc3f7', fontSize: 18 }}>{openFaq === i ? '−' : '+'}</span>
+            </button>
+            {openFaq === i && (
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, padding: '0 4px 16px' }}>{f.a}</p>
+            )}
+          </div>
+        ))}
       </div>
 
       <div style={{ textAlign: 'center', padding: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.25)', fontSize: 12 }}>
