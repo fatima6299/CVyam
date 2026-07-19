@@ -1,9 +1,15 @@
 import React, { useState } from 'react'
 
+const MODES = [
+  { key: 'free', label: 'Je remplis moi-même', price: 'Gratuit', desc: 'Offre de lancement — période de test', locked: false },
+  { key: 'auto', label: 'Je remplis moi-même', price: '500 FCFA', desc: 'Bientôt disponible', locked: true },
+  { key: 'assist', label: "BDS s'occupe de tout", price: '3 000 FCFA', desc: 'Bientôt disponible', locked: true },
+]
+
 export default function AuthPage({ onLogin, onLoginAdmin, onBack, admin }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [mode, setMode] = useState('auto')
+  const [mode, setMode] = useState('free')
   const [code, setCode] = useState('')
 
   const S = {
@@ -51,24 +57,30 @@ export default function AuthPage({ onLogin, onLoginAdmin, onBack, admin }) {
 
         <label style={S.label}>MODE DE CRÉATION</label>
         <div style={S.modeBox}>
-          <div style={S.modeOpt(mode === 'auto')} onClick={() => setMode('auto')}>
-            <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${mode === 'auto' ? '#4fc3f7' : 'rgba(255,255,255,0.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {mode === 'auto' && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4fc3f7' }}/>}
+          {MODES.map(m => (
+            <div key={m.key}
+              onClick={() => !m.locked && setMode(m.key)}
+              style={{
+                ...S.modeOpt(mode === m.key && !m.locked),
+                opacity: m.locked ? 0.45 : 1,
+                cursor: m.locked ? 'not-allowed' : 'pointer'
+              }}>
+              <div style={{
+                width: 18, height: 18, borderRadius: '50%',
+                border: `2px solid ${mode === m.key && !m.locked ? '#4fc3f7' : 'rgba(255,255,255,0.3)'}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+              }}>
+                {mode === m.key && !m.locked && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4fc3f7' }}/>}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{m.label}</div>
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>{m.desc}</div>
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: m.locked ? 'rgba(255,255,255,0.4)' : '#4fc3f7', flexShrink: 0 }}>
+                {m.locked ? '🔒' : m.price}
+              </div>
             </div>
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 14 }}>Je remplis moi-même</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>500 FCFA</div>
-            </div>
-          </div>
-          <div style={S.modeOpt(mode === 'assist')} onClick={() => setMode('assist')}>
-            <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${mode === 'assist' ? '#4fc3f7' : 'rgba(255,255,255,0.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {mode === 'assist' && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4fc3f7' }}/>}
-            </div>
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 14 }}>BDS s'occupe de tout</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>3 000 FCFA</div>
-            </div>
-          </div>
+          ))}
         </div>
 
         <button style={S.btn} onClick={() => name && email && onLogin(name, email, mode)}>

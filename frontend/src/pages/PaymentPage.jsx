@@ -47,8 +47,8 @@ export default function PaymentPage({ user, cvData, onConfirm, onBack }) {
           </div>
           <div style={{ background: '#f7f7f6', border: '0.5px solid #e2e2de', borderRadius: 10, padding: '12px 16px', textAlign: 'left', fontSize: 12, color: '#555', marginBottom: 20 }}>
             <div style={{ fontWeight: 600, marginBottom: 6, color: '#222' }}>Coordonnées de paiement BDS</div>
-            <div>📱 Wave / Orange Money : <strong>+221 XX XXX XX XX</strong></div>
-            <div style={{ marginTop: 4 }}>💬 WhatsApp : <strong>+221 XX XXX XX XX</strong></div>
+            <div>📱 Wave / Orange Money : <strong>+221 70 103 01 64</strong></div>
+            <div style={{ marginTop: 4 }}>💬 WhatsApp : <strong>+221 70 103 01 64</strong></div>
             <div style={{ marginTop: 4 }}>📝 Référence : <strong>{orderId}</strong></div>
           </div>
           <button onClick={onBack} style={S.btn}>Retour au builder →</button>

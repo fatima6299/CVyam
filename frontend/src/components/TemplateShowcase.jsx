@@ -15,7 +15,11 @@ function sample(nom, titre, extra = {}) {
     profil: "Professionnel(le) motivé(e), rigoureux(se) et orienté(e) résultats, avec une solide expérience de terrain.",
     formations: [{ annee: '2019', diplome: 'Licence Professionnelle', etablissement: 'Université Cheikh Anta Diop' }],
     experiences: [{ periode: '2021 – 2025', poste: titre, lieu: 'Entreprise SARL', taches: 'Gestion des dossiers\nSuivi client\nReporting mensuel' }],
-    competences: ['Organisation', 'Excel', 'Communication'],
+    competences: [
+      { nom: 'Organisation', description: '', niveau: 'Avancé' },
+      { nom: 'Excel', description: '', niveau: 'Intermédiaire' },
+      { nom: 'Communication', description: '', niveau: '' }
+    ],
     langues: [{ langue: 'Français', niveau: 'Langue maternelle' }, { langue: 'Anglais', niveau: 'Bon niveau (B2)' }],
     autresInfos: '',
     ...extra

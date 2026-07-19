@@ -53,7 +53,7 @@ export default function App() {
   if (page === 'builder') return (
     <BuilderPage
       user={user}
-      isPaid={!!userOrder}
+      isPaid={user?.mode === 'free' || !!userOrder}
       onPay={goPayment}
       onLogout={() => { setUser(null); setPage('landing') }}
     />

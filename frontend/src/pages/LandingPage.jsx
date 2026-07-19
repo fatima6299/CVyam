@@ -4,7 +4,7 @@ import TemplateShowcase, { HeroFan } from '../components/TemplateShowcase.jsx'
 const features = [
   { icon: '🎨', title: '20 templates professionnels', desc: 'Modernes, classiques, créatifs — pour tous les profils' },
   { icon: '⚡', title: 'Prévisualisation en direct', desc: 'Votre CV se construit sous vos yeux en temps réel' },
-  { icon: '📄', title: 'Export PDF haute qualité', desc: 'Téléchargement après validation du paiement' },
+  { icon: '📄', title: 'Export PDF haute qualité', desc: 'Téléchargement gratuit pendant la période de test' },
   { icon: '🔒', title: 'Accès sécurisé', desc: 'Votre CV est privé et accessible uniquement par vous' },
 ]
 
@@ -12,19 +12,20 @@ const steps = [
   { n: '1', title: 'Choisissez un template', desc: 'Parcourez 20 modèles professionnels et sélectionnez celui qui vous ressemble.' },
   { n: '2', title: 'Remplissez vos informations', desc: 'Un formulaire guidé étape par étape : identité, formations, expériences, compétences.' },
   { n: '3', title: 'Prévisualisez en direct', desc: 'Votre CV se construit sous vos yeux, exactement comme il sera imprimé.' },
-  { n: '4', title: 'Téléchargez votre PDF', desc: 'Validez votre paiement (Wave, Orange Money ou espèces) et téléchargez votre CV.' },
+  { n: '4', title: 'Téléchargez votre PDF', desc: 'Téléchargement gratuit pendant la période de test, aucun paiement requis.' },
 ]
 
 const faqs = [
-  { q: 'Comment se fait le paiement ?', a: 'Après avoir créé votre CV, choisissez Wave, Orange Money ou espèces. Un administrateur BDS Services valide votre paiement, puis le téléchargement PDF est débloqué.' },
+  { q: 'Est-ce vraiment gratuit ?', a: 'Oui, pendant la période de test, la création et le téléchargement de votre CV sont entièrement gratuits. Les offres Autonome (500 FCFA) et Assisté (3 000 FCFA) seront activées plus tard.' },
   { q: 'Puis-je changer de template après paiement ?', a: 'Oui, vous pouvez changer de template et modifier votre contenu à tout moment depuis le builder — le PDF suit vos dernières modifications.' },
   { q: 'Mes données sont-elles privées ?', a: 'Votre CV n\'est visible que par vous et par un administrateur BDS Services pour la validation du paiement. Il n\'est jamais partagé publiquement.' },
   { q: 'Combien de temps pour créer mon CV ?', a: 'Comptez environ 10 minutes en mode Autonome. En mode Assisté, notre équipe rédige et optimise votre contenu pour vous.' },
 ]
 
 const plans = [
-  { name: 'Autonome', price: '500', unit: 'FCFA', desc: 'Vous remplissez vous-même', features: ['Accès aux 20 templates', 'Formulaire guidé étape par étape', 'Prévisualisation en direct', 'Téléchargement PDF'], color: '#1a5276' },
-  { name: 'Assisté', price: '3 000', unit: 'FCFA', desc: 'BDS s\'occupe de tout pour vous', features: ['Tout le plan Autonome', 'Rédaction professionnelle', 'Optimisation du contenu', 'Support WhatsApp'], color: '#117a65', badge: 'Recommandé' },
+  { name: 'Gratuit', price: '0', unit: 'FCFA', desc: 'Vous remplissez vous-même', features: ['Accès aux 20 templates', 'Formulaire guidé étape par étape', 'Prévisualisation en direct', 'Téléchargement PDF'], color: '#1a5276', badge: 'Offre de lancement' },
+  { name: 'Autonome', price: '500', unit: 'FCFA', desc: 'Vous remplissez vous-même', features: ['Accès aux 20 templates', 'Formulaire guidé étape par étape', 'Prévisualisation en direct', 'Téléchargement PDF'], color: '#1a5276', locked: true },
+  { name: 'Assisté', price: '3 000', unit: 'FCFA', desc: 'BDS s\'occupe de tout pour vous', features: ['Tout le plan Autonome', 'Rédaction professionnelle', 'Optimisation du contenu', 'Support WhatsApp'], color: '#117a65', locked: true },
 ]
 
 export default function LandingPage({ onStart, onAdmin }) {
@@ -35,7 +36,7 @@ export default function LandingPage({ onStart, onAdmin }) {
       <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 2rem', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
         <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 20 }}>
           <span style={{ color: '#4fc3f7' }}>CV</span>Yam
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginLeft: 8, fontWeight: 400 }}>by BDS Services</span>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginLeft: 8, fontWeight: 400 }}>by FTD Services</span>
         </div>
         <button onClick={onAdmin} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)', padding: '6px 14px', borderRadius: 6, fontSize: 12 }}>
           Admin
@@ -62,7 +63,7 @@ export default function LandingPage({ onStart, onAdmin }) {
             onMouseOut={e => e.target.style.opacity = 1}>
             Créer mon CV →
           </button>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 12 }}>À partir de 500 FCFA · Paiement après création</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 12 }}>Gratuit pendant la période de test · Aucun paiement requis</div>
         </div>
         <div style={{ flex: '0 0 auto' }}>
           <HeroFan />
@@ -111,18 +112,22 @@ export default function LandingPage({ onStart, onAdmin }) {
       </div>
 
       {/* Pricing */}
-      <div style={{ maxWidth: 640, margin: '0 auto 5rem', padding: '0 2rem' }}>
+      <div style={{ maxWidth: 920, margin: '0 auto 5rem', padding: '0 2rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Tarifs simples et transparents</h2>
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14 }}>Payez uniquement quand votre CV est prêt</p>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14 }}>Période de test : créez votre CV gratuitement dès maintenant</p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           {plans.map(p => (
-            <div key={p.name} style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${p.badge ? 'rgba(79,195,247,0.4)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 14, padding: '1.5rem', position: 'relative' }}>
+            <div key={p.name} style={{
+              background: 'rgba(255,255,255,0.05)', border: `1px solid ${p.badge ? 'rgba(79,195,247,0.4)' : 'rgba(255,255,255,0.08)'}`,
+              borderRadius: 14, padding: '1.5rem', position: 'relative', opacity: p.locked ? 0.5 : 1
+            }}>
               {p.badge && <div style={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: '#4fc3f7', color: '#0a1628', fontSize: 11, fontWeight: 700, padding: '3px 12px', borderRadius: 99 }}>{p.badge}</div>}
+              {p.locked && <div style={{ position: 'absolute', top: 14, right: 14, fontSize: 16 }}>🔒</div>}
               <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>{p.name}</div>
               <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 28, fontWeight: 700, marginBottom: 2 }}>{p.price} <span style={{ fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.5)' }}>{p.unit}</span></div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: '1rem' }}>{p.desc}</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: '1rem' }}>{p.locked ? 'Bientôt disponible' : p.desc}</div>
               {p.features.map(f => <div key={f} style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginBottom: 5 }}>✓ {f}</div>)}
             </div>
           ))}
@@ -157,7 +162,7 @@ export default function LandingPage({ onStart, onAdmin }) {
       </div>
 
       <div style={{ textAlign: 'center', padding: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.25)', fontSize: 12 }}>
-        © 2025 BDS Services · Dakar, Sénégal · WhatsApp : +221 XX XXX XX XX
+        © 2026 FTD Services  WhatsApp : +221 70 103 01 64
       </div>
     </div>
   )

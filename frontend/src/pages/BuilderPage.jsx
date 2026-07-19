@@ -10,8 +10,24 @@ const COLOR_PRESETS = ['#1A5276', '#1E8449', '#78281F', '#6C3483', '#7D6608', '#
 const FONT_OPTIONS = [
   { value: 'Arial, sans-serif', label: 'Arial (classique)' },
   { value: "'Inter', sans-serif", label: 'Inter (moderne)' },
+  { value: "'Roboto', sans-serif", label: 'Roboto' },
+  { value: "'Lato', sans-serif", label: 'Lato' },
+  { value: "'Montserrat', sans-serif", label: 'Montserrat' },
   { value: 'Georgia, serif', label: 'Georgia (élégant)' },
+  { value: "'Merriweather', serif", label: 'Merriweather' },
   { value: "'Times New Roman', serif", label: 'Times New Roman (traditionnel)' },
+]
+
+const HEADING_CASE_OPTIONS = [
+  { value: 'uppercase', label: 'MAJUSCULES' },
+  { value: 'capitalize', label: 'Première Lettre' },
+]
+
+const MARGIN_OPTIONS = [
+  { value: 0, label: 'Aucune' },
+  { value: 8, label: 'Étroites' },
+  { value: 16, label: 'Normales' },
+  { value: 24, label: 'Larges' },
 ]
 
 const DENSITY_OPTIONS = [
@@ -25,11 +41,31 @@ const TITLE_ORDER_OPTIONS = [
   { value: 'inverse', label: 'Établissement, Diplôme' },
 ]
 
+const SKILL_LEVELS = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert']
+
 const COMPETENCES_STYLE_OPTIONS = [
   { value: 'bubble', label: 'Bulles' },
   { value: 'liste', label: 'Liste' },
   { value: 'compact', label: 'Compact' },
   { value: 'grille', label: 'Grille' },
+]
+
+const CUSTOMIZE_TABS = [
+  { key: 'document', label: 'Document' },
+  { key: 'couleurs', label: 'Couleurs' },
+  { key: 'police', label: 'Police' },
+  { key: 'taille', label: 'Taille & espacement' },
+  { key: 'entrees', label: 'Entrées' },
+]
+
+const PAGE_FORMAT_OPTIONS = [
+  { value: 'a4', label: 'A4 (210 × 297 mm)' },
+  { value: 'letter', label: 'Letter (215.9 × 279.4 mm)' },
+]
+
+const LANG_OPTIONS = [
+  { value: 'fr', label: 'Français' },
+  { value: 'en', label: 'Anglais' },
 ]
 
 const SECTION_CATALOG = [
@@ -110,18 +146,21 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
   const [step, setStep] = useState(0)
   const [tplId, setTplId] = useState(TEMPLATES[0].id)
   const [filterCat, setFilterCat] = useState('Tous')
+  const [customizeTab, setCustomizeTab] = useState('couleurs')
   const [data, setData] = useState({
     nom: user?.name || '', titre: '', email: user?.email || '',
     tel: '', adresse: '', ddn: '', profil: '', photo: '',
     formations: [{ annee: '', diplome: '', etablissement: '' }],
     experiences: [{ periode: '', poste: '', lieu: '', taches: '' }],
-    competences: [],
-    competencesRaw: '',
+    competences: [{ nom: '', description: '', niveau: '' }],
     langues: [{ langue: '', niveau: '' }],
     autresInfos: '',
     extras: {},
     extraSections: [],
-    customStyle: { color: '', font: '', density: 'normal', titleOrder: '', competencesStyle: '' }
+    customStyle: {
+      color: '', font: '', density: 'normal', titleOrder: '', competencesStyle: '', pageFormat: 'a4', lang: 'fr',
+      nameFont: '', headingCase: 'uppercase', marginX: 0, marginY: 0
+    }
   })
   const [visibleExtras, setVisibleExtras] = useState([])
   const [showPayWall, setShowPayWall] = useState(false)
@@ -130,7 +169,7 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
   const tpl = TEMPLATES.find(t => t.id === tplId) || TEMPLATES[0]
   const cvData = {
     ...data,
-    competences: data.competencesRaw.split(',').map(s => s.trim()).filter(Boolean),
+    competences: data.competences.filter(c => c.nom.trim()),
     extraSections: data.extraSections.map(s => s.mode === 'tags'
       ? { ...s, tags: (s.tagsRaw || '').split(',').map(t => t.trim()).filter(Boolean) }
       : s)
@@ -146,15 +185,25 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
   const setLangue = (i, k, v) => {
     const l = [...data.langues]; l[i] = { ...l[i], [k]: v }; set('langues', l)
   }
+  const setCompetence = (i, k, v) => {
+    const c = [...data.competences]; c[i] = { ...c[i], [k]: v }; set('competences', c)
+  }
   const addFormation = () => set('formations', [...data.formations, { annee: '', diplome: '', etablissement: '' }])
   const removeFormation = (i) => set('formations', data.formations.filter((_, j) => j !== i))
   const addExp = () => set('experiences', [...data.experiences, { periode: '', poste: '', lieu: '', taches: '' }])
   const removeExp = (i) => set('experiences', data.experiences.filter((_, j) => j !== i))
   const addLangue = () => set('langues', [...data.langues, { langue: '', niveau: '' }])
   const removeLangue = (i) => set('langues', data.langues.filter((_, j) => j !== i))
+  const addCompetence = () => set('competences', [...data.competences, { nom: '', description: '', niveau: '' }])
+  const removeCompetence = (i) => set('competences', data.competences.filter((_, j) => j !== i))
 
   const setCustom = (key, value) => setData(d => ({ ...d, customStyle: { ...d.customStyle, [key]: value } }))
-  const resetCustom = () => setData(d => ({ ...d, customStyle: { color: '', font: '', density: 'normal', titleOrder: '', competencesStyle: '' } }))
+  const resetCustom = () => setData(d => ({
+    ...d, customStyle: {
+      color: '', font: '', density: 'normal', titleOrder: '', competencesStyle: '', pageFormat: 'a4', lang: 'fr',
+      nameFont: '', headingCase: 'uppercase', marginX: 0, marginY: 0
+    }
+  }))
 
   const setExtra = (key, value) => setData(d => ({ ...d, extras: { ...d.extras, [key]: value } }))
   const showExtra = (key) => setVisibleExtras(v => [...v, key])
@@ -207,7 +256,7 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
         filename: `CV-${(data.nom || 'cvyam').replace(/\s+/g, '-')}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        jsPDF: { unit: 'mm', format: data.customStyle.pageFormat === 'letter' ? 'letter' : 'a4', orientation: 'portrait' }
       }).from(previewRef.current).save()
     } finally {
       setDownloading(false)
@@ -257,6 +306,14 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
     removeBtn: { position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', color: 'var(--ink4)', cursor: 'pointer', fontSize: 16, lineHeight: 1 },
     addBtn: { background: 'none', border: '0.5px dashed var(--border2)', borderRadius: 7, padding: '7px 12px', fontSize: 12, color: 'var(--accent)', cursor: 'pointer', width: '100%', marginTop: 4 },
     select: { width: '100%', padding: '8px 11px', border: '0.5px solid var(--border2)', borderRadius: 6, fontSize: 13, marginBottom: 12, background: '#fff', color: 'var(--ink)' },
+    customizeWrap: { display: 'flex', gap: 12, alignItems: 'flex-start' },
+    customizeNav: { width: 90, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 2 },
+    customizeNavItem: (active) => ({
+      padding: '7px 8px', borderRadius: 6, fontSize: 11.5, fontWeight: active ? 600 : 500, cursor: 'pointer',
+      textAlign: 'left', border: 'none', borderLeft: active ? '2px solid #4fc3f7' : '2px solid transparent',
+      background: active ? 'rgba(79,195,247,0.08)' : 'transparent', color: active ? '#0a1628' : 'var(--ink3)'
+    }),
+    customizePanel: { flex: 1, minWidth: 0 },
   }
 
   return (
@@ -277,8 +334,10 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
         </div>
         <div style={S.userBadge}>
           <div style={{ color: 'rgba(255,255,255,0.7)', marginBottom: 3 }}>{user?.name}</div>
-          <div style={{ fontSize: 10, marginBottom: 6 }}>{user?.mode === 'auto' ? '500 FCFA · Autonome' : '3 000 FCFA · Assisté'}</div>
-          {isPaid && <div style={{ fontSize: 10, color: '#4caf50', marginBottom: 4 }}>✓ Paiement validé</div>}
+          <div style={{ fontSize: 10, marginBottom: 6 }}>
+            {user?.mode === 'free' ? 'Gratuit · Test' : user?.mode === 'auto' ? '500 FCFA · Autonome' : '3 000 FCFA · Assisté'}
+          </div>
+          {user?.mode !== 'free' && isPaid && <div style={{ fontSize: 10, color: '#4caf50', marginBottom: 4 }}>✓ Paiement validé</div>}
           <button onClick={onLogout} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 11, cursor: 'pointer', padding: 0 }}>Déconnexion</button>
         </div>
       </div>
@@ -313,70 +372,168 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
 
             {/* STEP 1: Personnaliser */}
             {step === 1 && (
-              <>
-                <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Couleur d'accent</div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
-                  {COLOR_PRESETS.map(hex => (
-                    <button key={hex} onClick={() => setCustom('color', hex)} style={{
-                      width: 26, height: 26, borderRadius: '50%', background: hex, cursor: 'pointer',
-                      border: (data.customStyle.color || tpl.colors.primary) === hex ? '2px solid var(--ink)' : '1px solid var(--border2)'
-                    }} />
-                  ))}
-                  <label style={{
-                    width: 26, height: 26, borderRadius: '50%', cursor: 'pointer', position: 'relative', overflow: 'hidden',
-                    border: '1px solid var(--border2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12,
-                    background: 'var(--surface1)'
-                  }}>
-                    🎨
-                    <input type="color" value={data.customStyle.color || tpl.colors.primary} onChange={e => setCustom('color', e.target.value)}
-                      style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
-                  </label>
-                </div>
-
-                <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Police</div>
-                <select style={S.select} value={data.customStyle.font} onChange={e => setCustom('font', e.target.value)}>
-                  <option value="">Police du template (par défaut)</option>
-                  {FONT_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-                </select>
-
-                <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Taille & espacement</div>
-                <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-                  {DENSITY_OPTIONS.map(d => (
-                    <button key={d.value} onClick={() => setCustom('density', d.value)} style={{
-                      flex: 1, padding: '7px 8px', borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: 'pointer',
-                      border: '0.5px solid var(--border2)',
-                      background: (data.customStyle.density || 'normal') === d.value ? '#0a1628' : 'var(--surface1)',
-                      color: (data.customStyle.density || 'normal') === d.value ? '#fff' : 'var(--ink3)'
-                    }}>{d.label}</button>
+              <div style={S.customizeWrap}>
+                <div style={S.customizeNav}>
+                  {CUSTOMIZE_TABS.map(t => (
+                    <button key={t.key} onClick={() => setCustomizeTab(t.key)} style={S.customizeNavItem(customizeTab === t.key)}>
+                      {t.label}
+                    </button>
                   ))}
                 </div>
 
-                <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Ordre titre / sous-titre (Formation, Expériences)</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
-                  {TITLE_ORDER_OPTIONS.map(o => (
-                    <button key={o.value} onClick={() => setCustom('titleOrder', o.value)} style={{
-                      padding: '8px 10px', borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: 'pointer', textAlign: 'left',
-                      border: (data.customStyle.titleOrder || '') === o.value ? '1.5px solid #4fc3f7' : '0.5px solid var(--border2)',
-                      background: (data.customStyle.titleOrder || '') === o.value ? 'rgba(79,195,247,0.08)' : 'var(--surface1)',
-                      color: 'var(--ink)'
-                    }}>{o.label}</button>
-                  ))}
-                </div>
+                <div style={S.customizePanel}>
+                  {customizeTab === 'document' && (
+                    <>
+                      <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Format de page</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+                        {PAGE_FORMAT_OPTIONS.map(o => (
+                          <button key={o.value} onClick={() => setCustom('pageFormat', o.value)} style={{
+                            padding: '8px 10px', borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: 'pointer', textAlign: 'left',
+                            border: (data.customStyle.pageFormat || 'a4') === o.value ? '1.5px solid #4fc3f7' : '0.5px solid var(--border2)',
+                            background: (data.customStyle.pageFormat || 'a4') === o.value ? 'rgba(79,195,247,0.08)' : 'var(--surface1)',
+                            color: 'var(--ink)'
+                          }}>{o.label}</button>
+                        ))}
+                      </div>
 
-                <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Style des compétences</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 14 }}>
-                  {COMPETENCES_STYLE_OPTIONS.map(o => (
-                    <button key={o.value} onClick={() => setCustom('competencesStyle', o.value)} style={{
-                      padding: '7px 8px', borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: 'pointer',
-                      border: (data.customStyle.competencesStyle || '') === o.value ? '1.5px solid #4fc3f7' : '0.5px solid var(--border2)',
-                      background: (data.customStyle.competencesStyle || '') === o.value ? 'rgba(79,195,247,0.08)' : 'var(--surface1)',
-                      color: 'var(--ink)'
-                    }}>{o.label}</button>
-                  ))}
-                </div>
+                      <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Langue du CV</div>
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                        {LANG_OPTIONS.map(o => (
+                          <button key={o.value} onClick={() => setCustom('lang', o.value)} style={{
+                            flex: 1, padding: '7px 8px', borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                            border: (data.customStyle.lang || 'fr') === o.value ? '1.5px solid #4fc3f7' : '0.5px solid var(--border2)',
+                            background: (data.customStyle.lang || 'fr') === o.value ? 'rgba(79,195,247,0.08)' : 'var(--surface1)',
+                            color: 'var(--ink)'
+                          }}>{o.label}</button>
+                        ))}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--ink4)', lineHeight: 1.5 }}>Traduit les titres de section (Formation, Expériences...). Votre propre contenu (postes, descriptions) reste tel que vous l'avez écrit.</div>
+                    </>
+                  )}
 
-                <button style={S.addBtn} onClick={resetCustom}>↺ Réinitialiser la personnalisation</button>
-              </>
+                  {customizeTab === 'couleurs' && (
+                    <>
+                      <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Couleur d'accent</div>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+                        {COLOR_PRESETS.map(hex => (
+                          <button key={hex} onClick={() => setCustom('color', hex)} style={{
+                            width: 26, height: 26, borderRadius: '50%', background: hex, cursor: 'pointer',
+                            border: (data.customStyle.color || tpl.colors.primary) === hex ? '2px solid var(--ink)' : '1px solid var(--border2)'
+                          }} />
+                        ))}
+                        <label style={{
+                          width: 26, height: 26, borderRadius: '50%', cursor: 'pointer', position: 'relative', overflow: 'hidden',
+                          border: '1px solid var(--border2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12,
+                          background: 'var(--surface1)'
+                        }}>
+                          🎨
+                          <input type="color" value={data.customStyle.color || tpl.colors.primary} onChange={e => setCustom('color', e.target.value)}
+                            style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+                        </label>
+                      </div>
+                    </>
+                  )}
+
+                  {customizeTab === 'police' && (
+                    <>
+                      <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Police du corps</div>
+                      <select style={S.select} value={data.customStyle.font} onChange={e => setCustom('font', e.target.value)}>
+                        <option value="">Police du template (par défaut)</option>
+                        {FONT_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+                      </select>
+
+                      <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Police du nom</div>
+                      <select style={S.select} value={data.customStyle.nameFont} onChange={e => setCustom('nameFont', e.target.value)}>
+                        <option value="">Même police que le corps</option>
+                        {FONT_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+                      </select>
+                    </>
+                  )}
+
+                  {customizeTab === 'taille' && (
+                    <>
+                      <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Taille & espacement</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+                        {DENSITY_OPTIONS.map(d => (
+                          <button key={d.value} onClick={() => setCustom('density', d.value)} style={{
+                            padding: '8px 10px', borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: 'pointer', textAlign: 'left',
+                            border: (data.customStyle.density || 'normal') === d.value ? '1.5px solid #4fc3f7' : '0.5px solid var(--border2)',
+                            background: (data.customStyle.density || 'normal') === d.value ? 'rgba(79,195,247,0.08)' : 'var(--surface1)',
+                            color: 'var(--ink)'
+                          }}>{d.label}</button>
+                        ))}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--ink4)', lineHeight: 1.5, marginBottom: 14 }}>S'applique à l'aperçu ; le PDF téléchargé reste en densité normale.</div>
+
+                      <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Marges gauche & droite</div>
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+                        {MARGIN_OPTIONS.map(o => (
+                          <button key={o.value} onClick={() => setCustom('marginX', o.value)} style={{
+                            flex: 1, padding: '6px 4px', borderRadius: 7, fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                            border: (data.customStyle.marginX || 0) === o.value ? '1.5px solid #4fc3f7' : '0.5px solid var(--border2)',
+                            background: (data.customStyle.marginX || 0) === o.value ? 'rgba(79,195,247,0.08)' : 'var(--surface1)',
+                            color: 'var(--ink)'
+                          }}>{o.label}</button>
+                        ))}
+                      </div>
+
+                      <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Marges haut & bas</div>
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+                        {MARGIN_OPTIONS.map(o => (
+                          <button key={o.value} onClick={() => setCustom('marginY', o.value)} style={{
+                            flex: 1, padding: '6px 4px', borderRadius: 7, fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                            border: (data.customStyle.marginY || 0) === o.value ? '1.5px solid #4fc3f7' : '0.5px solid var(--border2)',
+                            background: (data.customStyle.marginY || 0) === o.value ? 'rgba(79,195,247,0.08)' : 'var(--surface1)',
+                            color: 'var(--ink)'
+                          }}>{o.label}</button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {customizeTab === 'entrees' && (
+                    <>
+                      <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Ordre titre / sous-titre (Formation, Expériences)</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+                        {TITLE_ORDER_OPTIONS.map(o => (
+                          <button key={o.value} onClick={() => setCustom('titleOrder', o.value)} style={{
+                            padding: '8px 10px', borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: 'pointer', textAlign: 'left',
+                            border: (data.customStyle.titleOrder || '') === o.value ? '1.5px solid #4fc3f7' : '0.5px solid var(--border2)',
+                            background: (data.customStyle.titleOrder || '') === o.value ? 'rgba(79,195,247,0.08)' : 'var(--surface1)',
+                            color: 'var(--ink)'
+                          }}>{o.label}</button>
+                        ))}
+                      </div>
+
+                      <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Style des compétences</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 14 }}>
+                        {COMPETENCES_STYLE_OPTIONS.map(o => (
+                          <button key={o.value} onClick={() => setCustom('competencesStyle', o.value)} style={{
+                            padding: '7px 8px', borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                            border: (data.customStyle.competencesStyle || '') === o.value ? '1.5px solid #4fc3f7' : '0.5px solid var(--border2)',
+                            background: (data.customStyle.competencesStyle || '') === o.value ? 'rgba(79,195,247,0.08)' : 'var(--surface1)',
+                            color: 'var(--ink)'
+                          }}>{o.label}</button>
+                        ))}
+                      </div>
+
+                      <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Casse des titres de section</div>
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+                        {HEADING_CASE_OPTIONS.map(o => (
+                          <button key={o.value} onClick={() => setCustom('headingCase', o.value)} style={{
+                            flex: 1, padding: '7px 8px', borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                            border: (data.customStyle.headingCase || 'uppercase') === o.value ? '1.5px solid #4fc3f7' : '0.5px solid var(--border2)',
+                            background: (data.customStyle.headingCase || 'uppercase') === o.value ? 'rgba(79,195,247,0.08)' : 'var(--surface1)',
+                            color: 'var(--ink)'
+                          }}>{o.label}</button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  <button style={S.addBtn} onClick={resetCustom}>↺ Réinitialiser la personnalisation</button>
+                </div>
+              </div>
             )}
 
             {/* STEP 2: Identité */}
@@ -485,8 +642,21 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
             {/* STEP 5: Compétences */}
             {step === 5 && (
               <>
-                <label style={S.label}>Compétences (séparées par des virgules)</label>
-                <textarea style={S.textarea} placeholder="Word, Excel, Comptabilité, Gestion..." value={data.competencesRaw} onChange={e => set('competencesRaw', e.target.value)} />
+                {data.competences.map((c, i) => (
+                  <div key={i} style={S.blockCard}>
+                    {data.competences.length > 1 && <button style={S.removeBtn} onClick={() => removeCompetence(i)}>×</button>}
+                    <label style={S.label}>Compétence</label>
+                    <input style={S.input} placeholder="Ex: Excel" value={c.nom} onChange={e => setCompetence(i, 'nom', e.target.value)} />
+                    <label style={S.label}>Description / sous-compétences</label>
+                    <textarea style={S.textarea} placeholder="Détails, sous-compétences..." value={c.description} onChange={e => setCompetence(i, 'description', e.target.value)} />
+                    <label style={S.label}>Niveau</label>
+                    <select style={S.select} value={c.niveau} onChange={e => setCompetence(i, 'niveau', e.target.value)}>
+                      <option value="">— Sélectionner —</option>
+                      {SKILL_LEVELS.map(l => <option key={l}>{l}</option>)}
+                    </select>
+                  </div>
+                ))}
+                <button style={S.addBtn} onClick={addCompetence}>+ Ajouter une compétence</button>
               </>
             )}
 
@@ -591,7 +761,12 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
             {/* STEP 8: Télécharger */}
             {step === 8 && (
               <div>
-                {isPaid ? (
+                {user?.mode === 'free' ? (
+                  <div style={{ background: '#d5f5e3', border: '0.5px solid #a9dfbf', borderRadius: 8, padding: 12, marginBottom: 14 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#1e8449', marginBottom: 3 }}>✓ Offre de lancement</div>
+                    <div style={{ fontSize: 12, color: '#196f3d' }}>Téléchargement gratuit.</div>
+                  </div>
+                ) : isPaid ? (
                   <div style={{ background: '#d5f5e3', border: '0.5px solid #a9dfbf', borderRadius: 8, padding: 12, marginBottom: 14 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#1e8449', marginBottom: 3 }}>✓ Paiement validé</div>
                     <div style={{ fontSize: 12, color: '#196f3d' }}>Vous pouvez télécharger votre CV en PDF.</div>

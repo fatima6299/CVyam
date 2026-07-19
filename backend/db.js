@@ -21,4 +21,8 @@ await pool.query(`
   )
 `)
 
+// Secret par appareil (généré côté client, jamais un mot de passe saisi) exigé pour retrouver un CV payé —
+// empêche de consulter le CV de quelqu'un d'autre en devinant simplement son email.
+await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS client_token TEXT`)
+
 export default pool
