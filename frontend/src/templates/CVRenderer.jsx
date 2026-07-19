@@ -28,17 +28,47 @@ function SectionTitle({ text, color, style = {} }) {
   )
 }
 
-function ExpBlock({ item, titleColor, subColor, dotColor }) {
+function titled(item, kind, order) {
+  if (kind === 'formation') {
+    return order === 'inverse' ? { title: item.etablissement, sub: item.diplome } : { title: item.diplome, sub: item.etablissement }
+  }
+  return order === 'inverse' ? { title: item.lieu, sub: item.poste } : { title: item.poste, sub: item.lieu }
+}
+
+function ExpBlock({ item, titleColor, subColor, dotColor, order }) {
+  const { title, sub } = titled(item, 'experience', order)
   return (
     <div style={{ marginBottom: 7 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
         <span style={{ fontSize: 7.5, color: dotColor || subColor, fontWeight: 700, minWidth: 50 }}>{item.periode}</span>
-        <span style={{ fontSize: 9, fontWeight: 700, color: titleColor }}>{item.poste}</span>
+        <span style={{ fontSize: 9, fontWeight: 700, color: titleColor }}>{title}</span>
       </div>
-      <div style={{ fontSize: 8, color: subColor, fontStyle: 'italic', marginLeft: 55 }}>{item.lieu}</div>
+      <div style={{ fontSize: 8, color: subColor, fontStyle: 'italic', marginLeft: 55 }}>{sub}</div>
       {item.taches && item.taches.split('\n').filter(Boolean).map((t, i) => (
         <div key={i} style={{ fontSize: 8, color: subColor, paddingLeft: 58, marginTop: 1 }}>• {t}</div>
       ))}
+    </div>
+  )
+}
+
+function CompetencesBlock({ items, mode = 'bubble', color, textColor = '#444' }) {
+  if (!items?.length) return null
+  if (mode === 'liste') return items.map((s, i) => <div key={i} style={{ fontSize: 8, color: textColor, marginBottom: 2 }}>• {s}</div>)
+  if (mode === 'points') return items.map((s, i) => (
+    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+      <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
+      <span style={{ fontSize: 8, color: textColor }}>{s}</span>
+    </div>
+  ))
+  if (mode === 'compact') return <div style={{ fontSize: 8, color: textColor, lineHeight: 1.6, marginBottom: 4 }}>{items.join(' · ')}</div>
+  if (mode === 'grille') return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px 8px', marginBottom: 4 }}>
+      {items.map((s, i) => <div key={i} style={{ fontSize: 8, color: textColor }}>▪ {s}</div>)}
+    </div>
+  )
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 4 }}>
+      {items.map((s, i) => <span key={i} style={{ background: color + '15', border: `0.5px solid ${color}44`, borderRadius: 99, padding: '2px 8px', fontSize: 8, color }}>{s}</span>)}
     </div>
   )
 }
@@ -70,12 +100,13 @@ function ExtraSections({ data, color, titleColor = '#111', textColor = '#444', s
   ))
 }
 
-function FormBlock({ item, titleColor, subColor, accentColor }) {
+function FormBlock({ item, titleColor, subColor, accentColor, order }) {
+  const { title, sub } = titled(item, 'formation', order)
   return (
     <div style={{ marginBottom: 6 }}>
       <span style={{ fontSize: 7.5, fontWeight: 700, color: accentColor }}>{item.annee} </span>
-      <span style={{ fontSize: 9, fontWeight: 700, color: titleColor }}>{item.diplome}</span>
-      <div style={{ fontSize: 8, color: subColor, fontStyle: 'italic', paddingLeft: 2 }}>{item.etablissement}</div>
+      <span style={{ fontSize: 9, fontWeight: 700, color: titleColor }}>{title}</span>
+      <div style={{ fontSize: 8, color: subColor, fontStyle: 'italic', paddingLeft: 2 }}>{sub}</div>
     </div>
   )
 }
@@ -85,7 +116,7 @@ function SidebarLeft({ data, tpl }) {
   const c = tpl.colors
   const LEFT = 155
   return (
-    <div style={{ display: 'flex', fontFamily: 'Arial, sans-serif', minHeight: 780 }}>
+    <div style={{ display: 'flex', fontFamily: data.customStyle?.font || 'Arial, sans-serif', minHeight: 780 }}>
       {/* Left */}
       <div style={{ width: LEFT, background: c.bg, color: c.text, padding: '0 12px 16px', flexShrink: 0 }}>
         <div style={{ background: c.primary, margin: '0 -12px', padding: '18px 14px 14px' }}>
@@ -106,7 +137,7 @@ function SidebarLeft({ data, tpl }) {
         </>}
         {data.competences?.length > 0 && <>
           <div style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: c.accent, margin: '10px 0 5px' }}>Compétences</div>
-          {data.competences.map((s, i) => <div key={i} style={{ fontSize: 8, opacity: 0.85, marginBottom: 2 }}>• {s}</div>)}
+          <CompetencesBlock items={data.competences} mode={data.customStyle?.competencesStyle || 'liste'} color={c.accent} textColor="rgba(255,255,255,0.85)" />
         </>}
         {data.langues?.length > 0 && <>
           <div style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: c.accent, margin: '10px 0 5px' }}>Langues</div>
@@ -122,11 +153,11 @@ function SidebarLeft({ data, tpl }) {
       <div style={{ flex: 1, padding: '16px 16px 16px 14px', background: '#fff' }}>
         {data.formations?.length > 0 && <>
           <SectionTitle text="Formation" color={c.primary} style={{ borderBottom: `1.5px solid ${c.primary}`, paddingBottom: 3 }} />
-          {data.formations.map((f, i) => <FormBlock key={i} item={f} titleColor="#111" subColor="#666" accentColor={c.primary} />)}
+          {data.formations.map((f, i) => <FormBlock key={i} item={f} titleColor="#111" subColor="#666" accentColor={c.primary} order={data.customStyle?.titleOrder} />)}
         </>}
         {data.experiences?.length > 0 && <>
           <SectionTitle text="Expériences Professionnelles" color={c.primary} style={{ borderBottom: `1.5px solid ${c.primary}`, paddingBottom: 3 }} />
-          {data.experiences.map((e, i) => <ExpBlock key={i} item={e} titleColor="#111" subColor="#555" dotColor={c.primary} />)}
+          {data.experiences.map((e, i) => <ExpBlock key={i} item={e} titleColor="#111" subColor="#555" dotColor={c.primary} order={data.customStyle?.titleOrder} />)}
         </>}
         {data.autresInfos && <>
           <SectionTitle text="Informations complémentaires" color={c.primary} style={{ borderBottom: `1.5px solid ${c.primary}`, paddingBottom: 3 }} />
@@ -143,7 +174,7 @@ function SidebarRight({ data, tpl }) {
   const c = tpl.colors
   const RIGHT = 155
   return (
-    <div style={{ display: 'flex', fontFamily: 'Arial, sans-serif', minHeight: 780 }}>
+    <div style={{ display: 'flex', fontFamily: data.customStyle?.font || 'Arial, sans-serif', minHeight: 780 }}>
       <div style={{ flex: 1, padding: '16px 14px 16px 16px', background: '#fff' }}>
         <div style={{ borderBottom: `2px solid ${c.primary}`, marginBottom: 12, paddingBottom: 10 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 2 }}>{data.nom || 'VOTRE NOM'}</div>
@@ -155,11 +186,11 @@ function SidebarRight({ data, tpl }) {
         </>}
         {data.formations?.length > 0 && <>
           <SectionTitle text="Formation" color={c.primary} style={{ borderBottom: `1px solid ${c.primary}`, paddingBottom: 2 }} />
-          {data.formations.map((f, i) => <FormBlock key={i} item={f} titleColor="#111" subColor="#666" accentColor={c.accent} />)}
+          {data.formations.map((f, i) => <FormBlock key={i} item={f} titleColor="#111" subColor="#666" accentColor={c.accent} order={data.customStyle?.titleOrder} />)}
         </>}
         {data.experiences?.length > 0 && <>
           <SectionTitle text="Expériences" color={c.primary} style={{ borderBottom: `1px solid ${c.primary}`, paddingBottom: 2 }} />
-          {data.experiences.map((e, i) => <ExpBlock key={i} item={e} titleColor="#111" subColor="#555" dotColor={c.accent} />)}
+          {data.experiences.map((e, i) => <ExpBlock key={i} item={e} titleColor="#111" subColor="#555" dotColor={c.accent} order={data.customStyle?.titleOrder} />)}
         </>}
         <ExtraSections data={data} color={c.primary} />
       </div>
@@ -178,7 +209,7 @@ function SidebarRight({ data, tpl }) {
         </div>
         {data.competences?.length > 0 && <>
           <div style={{ fontSize: 7.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: c.accent, marginBottom: 5 }}>Compétences</div>
-          {data.competences.map((s, i) => <div key={i} style={{ fontSize: 7.5, opacity: 0.85, marginBottom: 2 }}>• {s}</div>)}
+          <CompetencesBlock items={data.competences} mode={data.customStyle?.competencesStyle || 'liste'} color={c.accent} textColor="rgba(255,255,255,0.85)" />
         </>}
         {data.langues?.length > 0 && <>
           <div style={{ fontSize: 7.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: c.accent, margin: '10px 0 5px' }}>Langues</div>
@@ -193,7 +224,7 @@ function SidebarRight({ data, tpl }) {
 function Classic({ data, tpl }) {
   const c = tpl.colors
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', minHeight: 780, padding: '0 0 16px' }}>
+    <div style={{ fontFamily: data.customStyle?.font || 'Arial, sans-serif', minHeight: 780, padding: '0 0 16px' }}>
       <div style={{ textAlign: 'center', padding: '20px 24px 14px', borderBottom: `2px solid ${c.primary}` }}>
         {data.photo && <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}><Avatar src={data.photo} size={60} style={{ border: `2px solid ${c.primary}` }} /></div>}
         <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: '0.03em', color: '#111', marginBottom: 3 }}>{data.nom || 'VOTRE NOM'}</div>
@@ -213,30 +244,36 @@ function Classic({ data, tpl }) {
         </>}
         {data.formations?.length > 0 && <>
           <SectionTitle text="Formation" color={c.primary} style={{ borderBottom: `0.5px solid #ccc`, paddingBottom: 3 }} />
-          {data.formations.map((f, i) => (
-            <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
-              <div style={{ minWidth: 60, fontSize: 8, color: '#999', paddingTop: 1 }}>{f.annee}</div>
-              <div><div style={{ fontSize: 9.5, fontWeight: 700, color: '#111' }}>{f.diplome}</div><div style={{ fontSize: 8.5, color: '#666', fontStyle: 'italic' }}>{f.etablissement}</div></div>
-            </div>
-          ))}
+          {data.formations.map((f, i) => {
+            const { title, sub } = titled(f, 'formation', data.customStyle?.titleOrder)
+            return (
+              <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
+                <div style={{ minWidth: 60, fontSize: 8, color: '#999', paddingTop: 1 }}>{f.annee}</div>
+                <div><div style={{ fontSize: 9.5, fontWeight: 700, color: '#111' }}>{title}</div><div style={{ fontSize: 8.5, color: '#666', fontStyle: 'italic' }}>{sub}</div></div>
+              </div>
+            )
+          })}
         </>}
         {data.experiences?.length > 0 && <>
           <SectionTitle text="Expériences Professionnelles" color={c.primary} style={{ borderBottom: `0.5px solid #ccc`, paddingBottom: 3 }} />
-          {data.experiences.map((e, i) => (
-            <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
-              <div style={{ minWidth: 60, fontSize: 8, color: '#999', paddingTop: 1 }}>{e.periode}</div>
-              <div>
-                <div style={{ fontSize: 9.5, fontWeight: 700, color: '#111' }}>{e.poste}</div>
-                <div style={{ fontSize: 8.5, color: '#666', fontStyle: 'italic' }}>{e.lieu}</div>
-                {e.taches && e.taches.split('\n').filter(Boolean).map((t, j) => <div key={j} style={{ fontSize: 8, color: '#444', paddingLeft: 8, marginTop: 1 }}>• {t}</div>)}
+          {data.experiences.map((e, i) => {
+            const { title, sub } = titled(e, 'experience', data.customStyle?.titleOrder)
+            return (
+              <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+                <div style={{ minWidth: 60, fontSize: 8, color: '#999', paddingTop: 1 }}>{e.periode}</div>
+                <div>
+                  <div style={{ fontSize: 9.5, fontWeight: 700, color: '#111' }}>{title}</div>
+                  <div style={{ fontSize: 8.5, color: '#666', fontStyle: 'italic' }}>{sub}</div>
+                  {e.taches && e.taches.split('\n').filter(Boolean).map((t, j) => <div key={j} style={{ fontSize: 8, color: '#444', paddingLeft: 8, marginTop: 1 }}>• {t}</div>)}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </>}
         {(data.competences?.length > 0 || data.langues?.length > 0) && <>
           <SectionTitle text="Compétences & Langues" color={c.primary} style={{ borderBottom: `0.5px solid #ccc`, paddingBottom: 3 }} />
+          <CompetencesBlock items={data.competences} mode={data.customStyle?.competencesStyle || 'bubble'} color={c.primary} textColor="#444" />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-            {data.competences?.map((s, i) => <span key={i} style={{ background: '#f0f0f0', border: '0.5px solid #ddd', borderRadius: 99, padding: '2px 8px', fontSize: 8, color: '#444' }}>{s}</span>)}
             {data.langues?.map((l, i) => <span key={i} style={{ background: c.accent + '33', border: `0.5px solid ${c.primary}44`, borderRadius: 99, padding: '2px 8px', fontSize: 8, color: c.primary }}>{l.langue} — {l.niveau}</span>)}
           </div>
         </>}
@@ -250,7 +287,7 @@ function Classic({ data, tpl }) {
 function Elegant({ data, tpl }) {
   const c = tpl.colors
   return (
-    <div style={{ fontFamily: "'Georgia', serif", minHeight: 780, background: c.bg, color: c.text, padding: '0 0 20px' }}>
+    <div style={{ fontFamily: data.customStyle?.font || "'Georgia', serif", minHeight: 780, background: c.bg, color: c.text, padding: '0 0 20px' }}>
       <div style={{ padding: '22px 28px 16px', borderBottom: `1px solid ${c.primary}55`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 4, color: c.text }}>{data.nom || 'VOTRE NOM'}</div>
@@ -272,28 +309,36 @@ function Elegant({ data, tpl }) {
           </>}
           {data.experiences?.length > 0 && <>
             <div style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: c.accent, margin: '12px 0 5px' }}>Expériences</div>
-            {data.experiences.map((e, i) => (
-              <div key={i} style={{ marginBottom: 8, paddingLeft: 10, borderLeft: `2px solid ${c.primary}44` }}>
-                <div style={{ fontSize: 9.5, fontWeight: 700, color: c.text }}>{e.poste}</div>
-                <div style={{ fontSize: 8, color: c.accent, marginBottom: 1 }}>{e.lieu} · {e.periode}</div>
-                {e.taches && e.taches.split('\n').filter(Boolean).map((t, j) => <div key={j} style={{ fontSize: 8, color: c.rtext + 'cc', marginTop: 1 }}>• {t}</div>)}
-              </div>
-            ))}
+            {data.experiences.map((e, i) => {
+              const { title, sub } = titled(e, 'experience', data.customStyle?.titleOrder)
+              return (
+                <div key={i} style={{ marginBottom: 8, paddingLeft: 10, borderLeft: `2px solid ${c.primary}44` }}>
+                  <div style={{ fontSize: 9.5, fontWeight: 700, color: c.text }}>{title}</div>
+                  <div style={{ fontSize: 8, color: c.accent, marginBottom: 1 }}>{sub} · {e.periode}</div>
+                  {e.taches && e.taches.split('\n').filter(Boolean).map((t, j) => <div key={j} style={{ fontSize: 8, color: c.rtext + 'cc', marginTop: 1 }}>• {t}</div>)}
+                </div>
+              )
+            })}
           </>}
           <ExtraSections data={data} color={c.accent} titleColor={c.text} textColor={c.rtext + 'cc'} subColor={c.accent} />
         </div>
         <div style={{ width: 150, padding: '14px 16px 0 12px', borderLeft: `1px solid ${c.primary}33` }}>
           {data.formations?.length > 0 && <>
             <div style={{ fontSize: 7.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: c.accent, marginBottom: 6 }}>Formation</div>
-            {data.formations.map((f, i) => <div key={i} style={{ marginBottom: 7 }}>
-              <div style={{ fontSize: 8.5, fontWeight: 700, color: c.text }}>{f.diplome}</div>
-              <div style={{ fontSize: 7.5, color: c.accent }}>{f.etablissement}</div>
-              <div style={{ fontSize: 7.5, color: c.primary }}>{f.annee}</div>
-            </div>)}
+            {data.formations.map((f, i) => {
+              const { title, sub } = titled(f, 'formation', data.customStyle?.titleOrder)
+              return (
+                <div key={i} style={{ marginBottom: 7 }}>
+                  <div style={{ fontSize: 8.5, fontWeight: 700, color: c.text }}>{title}</div>
+                  <div style={{ fontSize: 7.5, color: c.accent }}>{sub}</div>
+                  <div style={{ fontSize: 7.5, color: c.primary }}>{f.annee}</div>
+                </div>
+              )
+            })}
           </>}
           {data.competences?.length > 0 && <>
             <div style={{ fontSize: 7.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: c.accent, margin: '10px 0 6px' }}>Compétences</div>
-            {data.competences.map((s, i) => <div key={i} style={{ fontSize: 8, color: c.rtext + 'cc', marginBottom: 2 }}>· {s}</div>)}
+            <CompetencesBlock items={data.competences} mode={data.customStyle?.competencesStyle || 'liste'} color={c.accent} textColor={c.rtext + 'cc'} />
           </>}
           {data.langues?.length > 0 && <>
             <div style={{ fontSize: 7.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: c.accent, margin: '10px 0 6px' }}>Langues</div>
@@ -312,7 +357,7 @@ function Elegant({ data, tpl }) {
 function CreativeGradient({ data, tpl }) {
   const c = tpl.colors
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', minHeight: 780, background: '#fff' }}>
+    <div style={{ fontFamily: data.customStyle?.font || 'Arial, sans-serif', minHeight: 780, background: '#fff' }}>
       <div style={{ background: c.bg, color: '#fff', padding: '20px 24px 28px', position: 'relative' }}>
         {data.photo && <Avatar src={data.photo} size={54} style={{ position: 'absolute', top: 20, right: 24, border: '2px solid rgba(255,255,255,0.5)' }} />}
         <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 2, maxWidth: data.photo ? '75%' : 'none' }}>{data.nom || 'VOTRE NOM'}</div>
@@ -335,31 +380,37 @@ function CreativeGradient({ data, tpl }) {
           <div style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: c.primary, margin: '8px 0 5px', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ display: 'inline-block', width: 18, height: 2, background: c.primary, borderRadius: 2 }} /> Formation
           </div>
-          {data.formations.map((f, i) => (
-            <div key={i} style={{ marginBottom: 6 }}>
-              <div style={{ fontSize: 9.5, fontWeight: 700, color: '#111' }}>{f.diplome} <span style={{ color: c.primary, fontWeight: 400, fontSize: 8 }}>{f.annee}</span></div>
-              <div style={{ fontSize: 8.5, color: '#666', fontStyle: 'italic' }}>{f.etablissement}</div>
-            </div>
-          ))}
+          {data.formations.map((f, i) => {
+            const { title, sub } = titled(f, 'formation', data.customStyle?.titleOrder)
+            return (
+              <div key={i} style={{ marginBottom: 6 }}>
+                <div style={{ fontSize: 9.5, fontWeight: 700, color: '#111' }}>{title} <span style={{ color: c.primary, fontWeight: 400, fontSize: 8 }}>{f.annee}</span></div>
+                <div style={{ fontSize: 8.5, color: '#666', fontStyle: 'italic' }}>{sub}</div>
+              </div>
+            )
+          })}
         </>}
         {data.experiences?.length > 0 && <>
           <div style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: c.primary, margin: '8px 0 5px', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ display: 'inline-block', width: 18, height: 2, background: c.primary, borderRadius: 2 }} /> Expériences
           </div>
-          {data.experiences.map((e, i) => (
-            <div key={i} style={{ marginBottom: 7 }}>
-              <div style={{ fontSize: 9.5, fontWeight: 700, color: '#111' }}>{e.poste} — <span style={{ fontWeight: 400, color: '#555', fontSize: 8.5 }}>{e.periode}</span></div>
-              <div style={{ fontSize: 8.5, color: c.primary, fontStyle: 'italic' }}>{e.lieu}</div>
-              {e.taches && e.taches.split('\n').filter(Boolean).map((t, j) => <div key={j} style={{ fontSize: 8, color: '#444', paddingLeft: 10, marginTop: 1 }}>• {t}</div>)}
-            </div>
-          ))}
+          {data.experiences.map((e, i) => {
+            const { title, sub } = titled(e, 'experience', data.customStyle?.titleOrder)
+            return (
+              <div key={i} style={{ marginBottom: 7 }}>
+                <div style={{ fontSize: 9.5, fontWeight: 700, color: '#111' }}>{title} — <span style={{ fontWeight: 400, color: '#555', fontSize: 8.5 }}>{e.periode}</span></div>
+                <div style={{ fontSize: 8.5, color: c.primary, fontStyle: 'italic' }}>{sub}</div>
+                {e.taches && e.taches.split('\n').filter(Boolean).map((t, j) => <div key={j} style={{ fontSize: 8, color: '#444', paddingLeft: 10, marginTop: 1 }}>• {t}</div>)}
+              </div>
+            )
+          })}
         </>}
         {(data.competences?.length > 0 || data.langues?.length > 0) && <>
           <div style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: c.primary, margin: '8px 0 5px', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ display: 'inline-block', width: 18, height: 2, background: c.primary, borderRadius: 2 }} /> Compétences & Langues
           </div>
+          <CompetencesBlock items={data.competences} mode={data.customStyle?.competencesStyle || 'bubble'} color={c.primary} textColor="#444" />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-            {data.competences?.map((s, i) => <span key={i} style={{ background: '#f0f0f0', borderRadius: 99, padding: '2px 8px', fontSize: 8, color: '#444' }}>{s}</span>)}
             {data.langues?.map((l, i) => <span key={i} style={{ background: c.primary + '15', border: `0.5px solid ${c.primary}`, borderRadius: 99, padding: '2px 8px', fontSize: 8, color: c.primary }}>{l.langue} — {l.niveau}</span>)}
           </div>
         </>}
@@ -373,7 +424,7 @@ function CreativeGradient({ data, tpl }) {
 function Minimal({ data, tpl }) {
   const c = tpl.colors
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', minHeight: 780, background: c.bg, padding: '0 0 20px' }}>
+    <div style={{ fontFamily: data.customStyle?.font || 'Arial, sans-serif', minHeight: 780, background: c.bg, padding: '0 0 20px' }}>
       <div style={{ borderLeft: `4px solid ${c.primary}`, padding: '18px 24px 14px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
         {data.photo && <Avatar src={data.photo} size={50} style={{ flexShrink: 0 }} />}
         <div>
@@ -395,30 +446,36 @@ function Minimal({ data, tpl }) {
         </>}
         {data.formations?.length > 0 && <>
           <div style={{ fontSize: 7.5, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#aaa', fontWeight: 700, margin: '10px 0 5px' }}>Formation</div>
-          {data.formations.map((f, i) => (
-            <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 6 }}>
-              <div style={{ fontSize: 8, color: '#ccc', minWidth: 55 }}>{f.annee}</div>
-              <div><div style={{ fontSize: 9.5, fontWeight: 700, color: '#111' }}>{f.diplome}</div><div style={{ fontSize: 8.5, color: '#888' }}>{f.etablissement}</div></div>
-            </div>
-          ))}
+          {data.formations.map((f, i) => {
+            const { title, sub } = titled(f, 'formation', data.customStyle?.titleOrder)
+            return (
+              <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 6 }}>
+                <div style={{ fontSize: 8, color: '#ccc', minWidth: 55 }}>{f.annee}</div>
+                <div><div style={{ fontSize: 9.5, fontWeight: 700, color: '#111' }}>{title}</div><div style={{ fontSize: 8.5, color: '#888' }}>{sub}</div></div>
+              </div>
+            )
+          })}
         </>}
         {data.experiences?.length > 0 && <>
           <div style={{ fontSize: 7.5, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#aaa', fontWeight: 700, margin: '10px 0 5px' }}>Expériences</div>
-          {data.experiences.map((e, i) => (
-            <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
-              <div style={{ fontSize: 8, color: '#ccc', minWidth: 55 }}>{e.periode}</div>
-              <div>
-                <div style={{ fontSize: 9.5, fontWeight: 700, color: '#111' }}>{e.poste}</div>
-                <div style={{ fontSize: 8.5, color: '#888' }}>{e.lieu}</div>
-                {e.taches && e.taches.split('\n').filter(Boolean).map((t, j) => <div key={j} style={{ fontSize: 8, color: '#555', paddingLeft: 8 }}>• {t}</div>)}
+          {data.experiences.map((e, i) => {
+            const { title, sub } = titled(e, 'experience', data.customStyle?.titleOrder)
+            return (
+              <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
+                <div style={{ fontSize: 8, color: '#ccc', minWidth: 55 }}>{e.periode}</div>
+                <div>
+                  <div style={{ fontSize: 9.5, fontWeight: 700, color: '#111' }}>{title}</div>
+                  <div style={{ fontSize: 8.5, color: '#888' }}>{sub}</div>
+                  {e.taches && e.taches.split('\n').filter(Boolean).map((t, j) => <div key={j} style={{ fontSize: 8, color: '#555', paddingLeft: 8 }}>• {t}</div>)}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </>}
         {(data.competences?.length > 0 || data.langues?.length > 0) && <>
           <div style={{ fontSize: 7.5, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#aaa', fontWeight: 700, margin: '10px 0 5px' }}>Compétences & Langues</div>
+          <CompetencesBlock items={data.competences} mode={data.customStyle?.competencesStyle || 'bubble'} color={c.primary} textColor="#444" />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-            {data.competences?.map((s, i) => <span key={i} style={{ background: '#eee', borderRadius: 99, padding: '2px 8px', fontSize: 8, color: '#444' }}>{s}</span>)}
             {data.langues?.map((l, i) => <span key={i} style={{ background: c.primary + '18', border: `0.5px solid ${c.primary}66`, borderRadius: 99, padding: '2px 8px', fontSize: 8, color: c.primary }}>{l.langue} — {l.niveau}</span>)}
           </div>
         </>}
@@ -432,7 +489,7 @@ function Minimal({ data, tpl }) {
 function DoubleBand({ data, tpl }) {
   const c = tpl.colors
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', minHeight: 780 }}>
+    <div style={{ fontFamily: data.customStyle?.font || 'Arial, sans-serif', minHeight: 780 }}>
       <div style={{ background: c.bg, color: '#fff', padding: '16px 24px 12px', position: 'relative' }}>
         {data.photo && <Avatar src={data.photo} size={46} style={{ position: 'absolute', top: 14, right: 24 }} />}
         <div style={{ fontSize: 19, fontWeight: 700, marginBottom: 1 }}>{data.nom || 'VOTRE NOM'}</div>
@@ -453,18 +510,18 @@ function DoubleBand({ data, tpl }) {
           </>}
           {data.formations?.length > 0 && <>
             <SectionTitle text="Formation" color={c.bg} style={{ borderBottom: `1.5px solid ${c.bg}`, paddingBottom: 3 }} />
-            {data.formations.map((f, i) => <FormBlock key={i} item={f} titleColor="#111" subColor="#666" accentColor={c.bg} />)}
+            {data.formations.map((f, i) => <FormBlock key={i} item={f} titleColor="#111" subColor="#666" accentColor={c.bg} order={data.customStyle?.titleOrder} />)}
           </>}
           {data.experiences?.length > 0 && <>
             <SectionTitle text="Expériences" color={c.bg} style={{ borderBottom: `1.5px solid ${c.bg}`, paddingBottom: 3 }} />
-            {data.experiences.map((e, i) => <ExpBlock key={i} item={e} titleColor="#111" subColor="#555" dotColor={c.bg} />)}
+            {data.experiences.map((e, i) => <ExpBlock key={i} item={e} titleColor="#111" subColor="#555" dotColor={c.bg} order={data.customStyle?.titleOrder} />)}
           </>}
           <ExtraSections data={data} color={c.bg} />
         </div>
         <div style={{ width: 150, padding: '14px 16px 0 12px', background: '#f8f8f8', borderLeft: `3px solid ${c.accent}` }}>
           {data.competences?.length > 0 && <>
             <div style={{ fontSize: 7.5, fontWeight: 700, textTransform: 'uppercase', color: c.bg, marginBottom: 5 }}>Compétences</div>
-            {data.competences.map((s, i) => <div key={i} style={{ fontSize: 8, color: '#444', marginBottom: 3 }}>• {s}</div>)}
+            <CompetencesBlock items={data.competences} mode={data.customStyle?.competencesStyle || 'liste'} color={c.bg} textColor="#444" />
           </>}
           {data.langues?.length > 0 && <>
             <div style={{ fontSize: 7.5, fontWeight: 700, textTransform: 'uppercase', color: c.bg, margin: '10px 0 5px' }}>Langues</div>
@@ -483,7 +540,7 @@ function DoubleBand({ data, tpl }) {
 function Timeline({ data, tpl }) {
   const c = tpl.colors
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', minHeight: 780, padding: '0 0 20px' }}>
+    <div style={{ fontFamily: data.customStyle?.font || 'Arial, sans-serif', minHeight: 780, padding: '0 0 20px' }}>
       <div style={{ background: c.primary, color: '#fff', padding: '18px 24px 14px', position: 'relative' }}>
         {data.photo && <Avatar src={data.photo} size={50} style={{ position: 'absolute', top: 16, right: 24, border: '2px solid rgba(255,255,255,0.5)' }} />}
         <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 2, maxWidth: data.photo ? '75%' : 'none' }}>{data.nom || 'VOTRE NOM'}</div>
@@ -527,12 +584,7 @@ function Timeline({ data, tpl }) {
           </>}
           {data.competences?.length > 0 && <>
             <SectionTitle text="Compétences" color={c.primary} style={{ borderBottom: `1.5px solid ${c.primary}`, paddingBottom: 3 }} />
-            {data.competences.map((s, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: c.accent, flexShrink: 0 }} />
-                <span style={{ fontSize: 8, color: '#444' }}>{s}</span>
-              </div>
-            ))}
+            <CompetencesBlock items={data.competences} mode={data.customStyle?.competencesStyle || 'points'} color={c.accent} textColor="#444" />
           </>}
           {data.langues?.length > 0 && <>
             <SectionTitle text="Langues" color={c.primary} style={{ borderBottom: `1.5px solid ${c.primary}`, paddingBottom: 3 }} />
@@ -547,10 +599,22 @@ function Timeline({ data, tpl }) {
   )
 }
 
+const DENSITY_ZOOM = { compact: 0.92, normal: 1, spacieux: 1.1 }
+
 // ── MAIN EXPORT ──────────────────────────────────────────────────────────────
 export default function CVRenderer({ data, tpl, forPrint = false }) {
   if (!tpl) return null
-  const style = forPrint ? { width: '210mm', minHeight: '297mm', background: '#fff' } : { width: '100%', background: '#fff', fontSize: 11 }
+  // La densité (zoom CSS) n'est appliquée qu'à l'aperçu écran : le moteur de capture PDF (html2canvas)
+  // ne prend pas en charge la propriété `zoom`, donc l'export reste toujours en densité normale.
+  const zoom = forPrint ? 1 : (DENSITY_ZOOM[data.customStyle?.density] || 1)
+  const style = {
+    ...(forPrint ? { width: '210mm', minHeight: '297mm', background: '#fff' } : { width: '100%', background: '#fff', fontSize: 11 }),
+    zoom
+  }
+
+  const effectiveTpl = data.customStyle?.color
+    ? { ...tpl, colors: { ...tpl.colors, primary: data.customStyle.color } }
+    : tpl
 
   const Component = {
     'sidebar-left': SidebarLeft,
@@ -565,7 +629,7 @@ export default function CVRenderer({ data, tpl, forPrint = false }) {
 
   return (
     <div style={style} id={forPrint ? 'cv-print-area' : undefined}>
-      <Component data={data} tpl={tpl} />
+      <Component data={data} tpl={effectiveTpl} />
     </div>
   )
 }

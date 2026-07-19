@@ -1,8 +1,36 @@
 import React, { useState, useRef } from 'react'
+import html2pdf from 'html2pdf.js'
 import { TEMPLATES } from '../templates/templateList.js'
 import CVRenderer from '../templates/CVRenderer.jsx'
 
-const STEPS = ['Template', 'Identité', 'Formation', 'Expériences', 'Compétences', 'Langues', 'Autres sections', 'Télécharger']
+const STEPS = ['Template', 'Personnaliser', 'Identité', 'Formation', 'Expériences', 'Compétences', 'Langues', 'Autres sections', 'Télécharger']
+
+const COLOR_PRESETS = ['#1A5276', '#1E8449', '#78281F', '#6C3483', '#7D6608', '#2C3E50', '#117A65', '#E74C3C']
+
+const FONT_OPTIONS = [
+  { value: 'Arial, sans-serif', label: 'Arial (classique)' },
+  { value: "'Inter', sans-serif", label: 'Inter (moderne)' },
+  { value: 'Georgia, serif', label: 'Georgia (élégant)' },
+  { value: "'Times New Roman', serif", label: 'Times New Roman (traditionnel)' },
+]
+
+const DENSITY_OPTIONS = [
+  { value: 'compact', label: 'Compact' },
+  { value: 'normal', label: 'Normal' },
+  { value: 'spacieux', label: 'Aéré' },
+]
+
+const TITLE_ORDER_OPTIONS = [
+  { value: '', label: 'Diplôme, Établissement' },
+  { value: 'inverse', label: 'Établissement, Diplôme' },
+]
+
+const COMPETENCES_STYLE_OPTIONS = [
+  { value: 'bubble', label: 'Bulles' },
+  { value: 'liste', label: 'Liste' },
+  { value: 'compact', label: 'Compact' },
+  { value: 'grille', label: 'Grille' },
+]
 
 const SECTION_CATALOG = [
   { type: 'certificats', label: 'Certificats', icon: '🎖️', mode: 'list', itemLabels: { titre: 'Nom du certificat', sous: 'Organisme', date: 'Date', desc: '' } },
@@ -92,11 +120,12 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
     langues: [{ langue: '', niveau: '' }],
     autresInfos: '',
     extras: {},
-    extraSections: []
+    extraSections: [],
+    customStyle: { color: '', font: '', density: 'normal', titleOrder: '', competencesStyle: '' }
   })
   const [visibleExtras, setVisibleExtras] = useState([])
   const [showPayWall, setShowPayWall] = useState(false)
-  const printRef = useRef()
+  const previewRef = useRef()
 
   const tpl = TEMPLATES.find(t => t.id === tplId) || TEMPLATES[0]
   const cvData = {
@@ -123,6 +152,9 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
   const removeExp = (i) => set('experiences', data.experiences.filter((_, j) => j !== i))
   const addLangue = () => set('langues', [...data.langues, { langue: '', niveau: '' }])
   const removeLangue = (i) => set('langues', data.langues.filter((_, j) => j !== i))
+
+  const setCustom = (key, value) => setData(d => ({ ...d, customStyle: { ...d.customStyle, [key]: value } }))
+  const resetCustom = () => setData(d => ({ ...d, customStyle: { color: '', font: '', density: 'normal', titleOrder: '', competencesStyle: '' } }))
 
   const setExtra = (key, value) => setData(d => ({ ...d, extras: { ...d.extras, [key]: value } }))
   const showExtra = (key) => setVisibleExtras(v => [...v, key])
@@ -164,15 +196,22 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
     updateSection(key, { items: sec.items.filter((_, j) => j !== i) })
   }
 
-  const handleDownload = () => {
+  const [downloading, setDownloading] = useState(false)
+
+  const handleDownload = async () => {
     if (!isPaid) { setShowPayWall(true); return }
-    const html = printRef.current.innerHTML
-    const win = window.open('', '_blank')
-    win.document.write(`<!DOCTYPE html><html><head><title>CV - ${data.nom}</title>
-    <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif}</style>
-    </head><body>${html}</body></html>`)
-    win.document.close()
-    setTimeout(() => win.print(), 400)
+    setDownloading(true)
+    try {
+      await html2pdf().set({
+        margin: 0,
+        filename: `CV-${(data.nom || 'cvyam').replace(/\s+/g, '-')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).from(previewRef.current).save()
+    } finally {
+      setDownloading(false)
+    }
   }
 
   const filteredTpls = filterCat === 'Tous' ? TEMPLATES : TEMPLATES.filter(t => t.category === filterCat)
@@ -272,8 +311,76 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
               </>
             )}
 
-            {/* STEP 1: Identité */}
+            {/* STEP 1: Personnaliser */}
             {step === 1 && (
+              <>
+                <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Couleur d'accent</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+                  {COLOR_PRESETS.map(hex => (
+                    <button key={hex} onClick={() => setCustom('color', hex)} style={{
+                      width: 26, height: 26, borderRadius: '50%', background: hex, cursor: 'pointer',
+                      border: (data.customStyle.color || tpl.colors.primary) === hex ? '2px solid var(--ink)' : '1px solid var(--border2)'
+                    }} />
+                  ))}
+                  <label style={{
+                    width: 26, height: 26, borderRadius: '50%', cursor: 'pointer', position: 'relative', overflow: 'hidden',
+                    border: '1px solid var(--border2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12,
+                    background: 'var(--surface1)'
+                  }}>
+                    🎨
+                    <input type="color" value={data.customStyle.color || tpl.colors.primary} onChange={e => setCustom('color', e.target.value)}
+                      style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+                  </label>
+                </div>
+
+                <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Police</div>
+                <select style={S.select} value={data.customStyle.font} onChange={e => setCustom('font', e.target.value)}>
+                  <option value="">Police du template (par défaut)</option>
+                  {FONT_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+                </select>
+
+                <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Taille & espacement</div>
+                <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+                  {DENSITY_OPTIONS.map(d => (
+                    <button key={d.value} onClick={() => setCustom('density', d.value)} style={{
+                      flex: 1, padding: '7px 8px', borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                      border: '0.5px solid var(--border2)',
+                      background: (data.customStyle.density || 'normal') === d.value ? '#0a1628' : 'var(--surface1)',
+                      color: (data.customStyle.density || 'normal') === d.value ? '#fff' : 'var(--ink3)'
+                    }}>{d.label}</button>
+                  ))}
+                </div>
+
+                <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Ordre titre / sous-titre (Formation, Expériences)</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+                  {TITLE_ORDER_OPTIONS.map(o => (
+                    <button key={o.value} onClick={() => setCustom('titleOrder', o.value)} style={{
+                      padding: '8px 10px', borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: 'pointer', textAlign: 'left',
+                      border: (data.customStyle.titleOrder || '') === o.value ? '1.5px solid #4fc3f7' : '0.5px solid var(--border2)',
+                      background: (data.customStyle.titleOrder || '') === o.value ? 'rgba(79,195,247,0.08)' : 'var(--surface1)',
+                      color: 'var(--ink)'
+                    }}>{o.label}</button>
+                  ))}
+                </div>
+
+                <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Style des compétences</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 14 }}>
+                  {COMPETENCES_STYLE_OPTIONS.map(o => (
+                    <button key={o.value} onClick={() => setCustom('competencesStyle', o.value)} style={{
+                      padding: '7px 8px', borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                      border: (data.customStyle.competencesStyle || '') === o.value ? '1.5px solid #4fc3f7' : '0.5px solid var(--border2)',
+                      background: (data.customStyle.competencesStyle || '') === o.value ? 'rgba(79,195,247,0.08)' : 'var(--surface1)',
+                      color: 'var(--ink)'
+                    }}>{o.label}</button>
+                  ))}
+                </div>
+
+                <button style={S.addBtn} onClick={resetCustom}>↺ Réinitialiser la personnalisation</button>
+              </>
+            )}
+
+            {/* STEP 2: Identité */}
+            {step === 2 && (
               <>
                 <label style={S.label}>Photo (facultatif)</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
@@ -337,8 +444,8 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
               </>
             )}
 
-            {/* STEP 2: Formations */}
-            {step === 2 && (
+            {/* STEP 3: Formations */}
+            {step === 3 && (
               <>
                 {data.formations.map((f, i) => (
                   <div key={i} style={S.blockCard}>
@@ -355,8 +462,8 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
               </>
             )}
 
-            {/* STEP 3: Expériences */}
-            {step === 3 && (
+            {/* STEP 4: Expériences */}
+            {step === 4 && (
               <>
                 {data.experiences.map((e, i) => (
                   <div key={i} style={S.blockCard}>
@@ -375,16 +482,16 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
               </>
             )}
 
-            {/* STEP 4: Compétences */}
-            {step === 4 && (
+            {/* STEP 5: Compétences */}
+            {step === 5 && (
               <>
                 <label style={S.label}>Compétences (séparées par des virgules)</label>
                 <textarea style={S.textarea} placeholder="Word, Excel, Comptabilité, Gestion..." value={data.competencesRaw} onChange={e => set('competencesRaw', e.target.value)} />
               </>
             )}
 
-            {/* STEP 5: Langues */}
-            {step === 5 && (
+            {/* STEP 6: Langues */}
+            {step === 6 && (
               <>
                 <div style={{ marginBottom: 6, fontSize: 12, fontWeight: 600, color: 'var(--ink2)' }}>Langues</div>
                 {data.langues.map((l, i) => (
@@ -412,8 +519,8 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
               </>
             )}
 
-            {/* STEP 6: Sections additionnelles */}
-            {step === 6 && (
+            {/* STEP 7: Sections additionnelles */}
+            {step === 7 && (
               <>
                 {data.extraSections.map(sec => {
                   const catalogEntry = SECTION_CATALOG.find(c => c.type === sec.type)
@@ -481,8 +588,8 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
               </>
             )}
 
-            {/* STEP 7: Télécharger */}
-            {step === 7 && (
+            {/* STEP 8: Télécharger */}
+            {step === 8 && (
               <div>
                 {isPaid ? (
                   <div style={{ background: '#d5f5e3', border: '0.5px solid #a9dfbf', borderRadius: 8, padding: 12, marginBottom: 14 }}>
@@ -501,17 +608,14 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
                   </div>
                 )}
                 <div style={{ fontSize: 12, color: 'var(--ink3)', marginBottom: 8 }}>Template sélectionné : <strong>{tpl.name}</strong></div>
-                <button onClick={handleDownload} disabled={!isPaid} style={{
+                <button onClick={handleDownload} disabled={!isPaid || downloading} style={{
                   width: '100%', padding: '11px', borderRadius: 99, fontSize: 14, fontWeight: 700,
                   border: 'none', fontFamily: "'Space Grotesk', sans-serif",
                   background: isPaid ? '#0a1628' : '#ccc', color: '#fff',
-                  cursor: isPaid ? 'pointer' : 'not-allowed'
+                  cursor: isPaid && !downloading ? 'pointer' : 'not-allowed'
                 }}>
-                  {isPaid ? '⬇ Télécharger le PDF' : '🔒 Paiement requis'}
+                  {!isPaid ? '🔒 Paiement requis' : downloading ? 'Génération du PDF…' : '⬇ Télécharger le PDF'}
                 </button>
-                <div style={{ display: 'none' }} ref={printRef}>
-                  <CVRenderer data={cvData} tpl={tpl} forPrint />
-                </div>
               </div>
             )}
           </div>
@@ -519,7 +623,7 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
           {/* Nav buttons */}
           <div style={S.navBtns}>
             {step > 0 && <button style={S.btn} onClick={() => setStep(s => s - 1)}>← Retour</button>}
-            {step < 7 && <button style={{ ...S.btnPrimary, marginLeft: 'auto' }} onClick={() => setStep(s => s + 1)}>Suivant →</button>}
+            {step < 8 && <button style={{ ...S.btnPrimary, marginLeft: 'auto' }} onClick={() => setStep(s => s + 1)}>Suivant →</button>}
           </div>
         </div>
 
@@ -530,7 +634,7 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
             <span style={{ fontSize: 11, color: '#aaa' }}>Format A4</span>
           </div>
           <div style={S.previewFrame}>
-            <div style={S.cvCard}>
+            <div style={S.cvCard} ref={previewRef}>
               <CVRenderer data={cvData} tpl={tpl} />
             </div>
           </div>
