@@ -640,6 +640,85 @@ function Timeline({ data, tpl }) {
   )
 }
 
+// ── FTD (bandeau plein largeur + sidebar claire) ──────────────────────────────
+function FTD({ data, tpl }) {
+  const c = tpl.colors
+  return (
+    <div style={{ fontFamily: data.customStyle?.font || 'Arial, sans-serif', minHeight: 780 }}>
+      <div style={{ background: c.bg, color: c.text, padding: '22px 28px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+        <div>
+          <div style={{ fontFamily: data.customStyle?.nameFont || undefined, fontSize: 21, fontWeight: 800, marginBottom: 3 }}>{data.nom || t(data, 'votreNom')}</div>
+          <div style={{ fontSize: 10.5, fontStyle: 'italic', color: c.accent, marginBottom: 8 }}>{data.titre || t(data, 'titreProfessionnel')}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 8, color: 'rgba(255,255,255,0.85)' }}>
+            {data.email && <span>✉ {data.email}</span>}
+            {data.tel && <span>✆ {data.tel}</span>}
+            {data.adresse && <span>📍 {data.adresse}</span>}
+            {extraItems(data).map((it, i) => <span key={i}>{it.icon} {it.text}</span>)}
+          </div>
+        </div>
+        {data.photo && <Avatar src={data.photo} size={64} style={{ border: `2px solid ${c.accent}`, flexShrink: 0 }} />}
+      </div>
+      <div style={{ display: 'flex' }}>
+        <div style={{ width: 155, background: '#eef1f5', padding: '16px 14px', flexShrink: 0 }}>
+          {data.competences?.length > 0 && <>
+            <SectionTitle data={data} text={t(data, 'competences')} color={c.primary} style={{ borderBottom: `1.5px solid ${c.primary}`, paddingBottom: 3 }} />
+            <CompetencesBlock items={data.competences} mode={data.customStyle?.competencesStyle || 'liste'} color={c.primary} textColor="#444" titleColor="#182430" subColor="#667" />
+          </>}
+          {data.langues?.length > 0 && <>
+            <SectionTitle data={data} text={t(data, 'langues')} color={c.primary} style={{ borderBottom: `1.5px solid ${c.primary}`, paddingBottom: 3 }} />
+            {data.langues.map((l, i) => (
+              <div key={i} style={{ fontSize: 8, color: '#444', marginBottom: 3 }}>
+                <strong>{l.langue}</strong>{l.niveau && ` : ${l.niveau}`}
+              </div>
+            ))}
+          </>}
+        </div>
+        <div style={{ flex: 1, padding: '16px 20px' }}>
+          {data.profil && <>
+            <SectionTitle data={data} text={t(data, 'profil')} color={c.primary} style={{ borderBottom: `1.5px solid ${c.primary}`, paddingBottom: 3 }} />
+            <p style={{ fontSize: 8.5, color: '#333', lineHeight: 1.6, marginBottom: 6 }}>{data.profil}</p>
+          </>}
+          {data.experiences?.length > 0 && <>
+            <SectionTitle data={data} text={t(data, 'experiences')} color={c.primary} style={{ borderBottom: `1.5px solid ${c.primary}`, paddingBottom: 3 }} />
+            {data.experiences.map((e, i) => {
+              const { title, sub } = titled(e, 'experience', data.customStyle?.titleOrder)
+              return (
+                <div key={i} style={{ marginBottom: 8 }}>
+                  <div style={{ fontSize: 9.5, fontWeight: 700, color: '#182430' }}>
+                    {title}{sub && <><span style={{ fontWeight: 400, color: '#999' }}> | </span><span style={{ color: c.primary, fontWeight: 700 }}>{sub}</span></>}
+                  </div>
+                  <div style={{ fontSize: 8, fontStyle: 'italic', color: '#777', marginBottom: 2 }}>{e.periode}</div>
+                  {e.taches && e.taches.split('\n').filter(Boolean).map((tk, j) => (
+                    <div key={j} style={{ fontSize: 8, color: '#333', paddingLeft: 10, marginTop: 1 }}>• {tk}</div>
+                  ))}
+                </div>
+              )
+            })}
+          </>}
+          {data.formations?.length > 0 && <>
+            <SectionTitle data={data} text={t(data, 'formation')} color={c.primary} style={{ borderBottom: `1.5px solid ${c.primary}`, paddingBottom: 3 }} />
+            {data.formations.map((f, i) => {
+              const { title, sub } = titled(f, 'formation', data.customStyle?.titleOrder)
+              return (
+                <div key={i} style={{ marginBottom: 7 }}>
+                  <div style={{ fontSize: 9.5, fontWeight: 700, color: '#182430' }}>{title}</div>
+                  <div style={{ fontSize: 8, fontStyle: 'italic', color: c.primary }}>{sub}</div>
+                  <div style={{ fontSize: 7.5, color: '#888' }}>{f.annee}</div>
+                </div>
+              )
+            })}
+          </>}
+          {data.autresInfos && <>
+            <SectionTitle data={data} text={t(data, 'infosComplementaires')} color={c.primary} style={{ borderBottom: `1.5px solid ${c.primary}`, paddingBottom: 3 }} />
+            <div style={{ fontSize: 8.5, color: '#444', lineHeight: 1.6 }}>{data.autresInfos}</div>
+          </>}
+          <ExtraSections data={data} color={c.primary} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const DENSITY_ZOOM = { compact: 0.92, normal: 1, spacieux: 1.1 }
 const PAGE_SIZES = { a4: { width: '210mm', height: '297mm' }, letter: { width: '215.9mm', height: '279.4mm' } }
 
@@ -671,6 +750,7 @@ export default function CVRenderer({ data, tpl, forPrint = false }) {
     'minimal': Minimal,
     'double-band': DoubleBand,
     'timeline': Timeline,
+    'ftd': FTD,
   }[tpl.layout] || SidebarLeft
 
   return (

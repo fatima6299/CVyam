@@ -118,7 +118,7 @@ function TemplateThumb({ tpl, selected, onClick }) {
             <div style={{ height: 6, background: tpl.colors.accent + '88', borderRadius: 2, marginBottom: 4, width: '55%' }} />
             <div style={{ height: 3, background: tpl.colors.accent + '44', borderRadius: 2, width: '40%' }} />
           </div>
-        ) : tpl.layout === 'double-band' ? (
+        ) : tpl.layout === 'double-band' || tpl.layout === 'ftd' ? (
           <div style={{ flex: 1 }}>
             <div style={{ height: 28, background: tpl.colors.bg }} />
             <div style={{ height: 10, background: tpl.colors.accent }} />

@@ -144,5 +144,13 @@ export const TEMPLATES = [
     colors: { primary: '#117A65', accent: '#1ABC9C', bg: '#0E6655', text: '#fff', rtext: '#222' },
     layout: 'sidebar-left',
     thumb: { left: '#117A65', right: '#f9f9f9' }
+  },
+  {
+    id: 'ftd',
+    name: 'FTD',
+    category: 'FTD',
+    colors: { primary: '#2E6DA4', accent: '#8FB8E0', bg: '#152A43', text: '#fff', rtext: '#222' },
+    layout: 'ftd',
+    thumb: { left: '#152A43', right: '#eef1f5', accent: '#2E6DA4' }
   }
 ]

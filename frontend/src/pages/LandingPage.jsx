@@ -2,7 +2,7 @@ import React from 'react'
 import TemplateShowcase, { HeroFan } from '../components/TemplateShowcase.jsx'
 
 const features = [
-  { icon: '🎨', title: '20 templates professionnels', desc: 'Modernes, classiques, créatifs — pour tous les profils' },
+  { icon: '🎨', title: '21 templates professionnels', desc: 'Modernes, classiques, créatifs — pour tous les profils' },
   { icon: '⚡', title: 'Prévisualisation en direct', desc: 'Votre CV se construit sous vos yeux en temps réel' },
   { icon: '📄', title: 'Export PDF haute qualité', desc: 'Téléchargement gratuit pendant la période de test' },
   { icon: '🔒', title: 'Accès sécurisé', desc: 'Votre CV est privé et accessible uniquement par vous' },
@@ -23,8 +23,8 @@ const faqs = [
 ]
 
 const plans = [
-  { name: 'Gratuit', price: '0', unit: 'FCFA', desc: 'Vous remplissez vous-même', features: ['Accès aux 20 templates', 'Formulaire guidé étape par étape', 'Prévisualisation en direct', 'Téléchargement PDF'], color: '#1a5276', badge: 'Offre de lancement' },
-  { name: 'Autonome', price: '500', unit: 'FCFA', desc: 'Vous remplissez vous-même', features: ['Accès aux 20 templates', 'Formulaire guidé étape par étape', 'Prévisualisation en direct', 'Téléchargement PDF'], color: '#1a5276', locked: true },
+  { name: 'Gratuit', price: '0', unit: 'FCFA', desc: 'Vous remplissez vous-même', features: ['Accès aux 21 templates', 'Formulaire guidé étape par étape', 'Prévisualisation en direct', 'Téléchargement PDF'], color: '#1a5276', badge: 'Offre de lancement' },
+  { name: 'Autonome', price: '500', unit: 'FCFA', desc: 'Vous remplissez vous-même', features: ['Accès aux 21 templates', 'Formulaire guidé étape par étape', 'Prévisualisation en direct', 'Téléchargement PDF'], color: '#1a5276', locked: true },
   { name: 'Assisté', price: '3 000', unit: 'FCFA', desc: 'BDS s\'occupe de tout pour vous', features: ['Tout le plan Autonome', 'Rédaction professionnelle', 'Optimisation du contenu', 'Support WhatsApp'], color: '#117a65', locked: true },
 ]
 
@@ -56,7 +56,7 @@ export default function LandingPage({ onStart, onAdmin }) {
             Un CV qui <span style={{ color: '#4fc3f7' }}>fait la différence</span>, en moins de 10 minutes
           </h1>
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 16, maxWidth: 480, margin: '0 auto 2.5rem', lineHeight: 1.7 }}>
-            Choisissez parmi 20 templates professionnels, remplissez vos informations et téléchargez votre CV au format PDF.
+            Choisissez parmi 21 templates professionnels, remplissez vos informations et téléchargez votre CV au format PDF.
           </p>
           <button onClick={onStart} style={{ background: '#4fc3f7', color: '#0a1628', border: 'none', padding: '14px 36px', borderRadius: 99, fontWeight: 700, fontSize: 16, fontFamily: "'Space Grotesk', sans-serif", letterSpacing: 0.3, transition: 'opacity 0.2s' }}
             onMouseOver={e => e.target.style.opacity = 0.88}
@@ -73,8 +73,8 @@ export default function LandingPage({ onStart, onAdmin }) {
       {/* Template showcase */}
       <div style={{ maxWidth: 1100, margin: '0 auto 4rem', padding: '0 2rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '1.2rem' }}>
-          <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 22, fontWeight: 700, marginBottom: 6 }}>20 templates professionnels</h2>
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13 }}>Moderne, Classique, Élégant, Créatif, Minimaliste, Corporate, Design</p>
+          <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 22, fontWeight: 700, marginBottom: 6 }}>21 templates professionnels</h2>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13 }}>Moderne, Classique, Élégant, Créatif, Minimaliste, Corporate, Design, FTD</p>
         </div>
         <TemplateShowcase onSelect={onStart} />
       </div>
