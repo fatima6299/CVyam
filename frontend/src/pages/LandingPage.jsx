@@ -50,7 +50,7 @@ export default function LandingPage({ onStart, onAdmin }) {
       }}>
         <div style={{ flex: '1 1 420px', maxWidth: 560, textAlign: 'center' }}>
           <div style={{ display: 'inline-block', background: 'rgba(79,195,247,0.12)', border: '1px solid rgba(79,195,247,0.25)', borderRadius: 99, padding: '5px 16px', fontSize: 12, color: '#4fc3f7', marginBottom: '1.5rem' }}>
-            ✦ Créez votre CV professionnel en quelques minutes
+            Créez votre CV professionnel en quelques minutes
           </div>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.2rem, 5vw, 3.8rem)', fontWeight: 700, lineHeight: 1.15, marginBottom: '1.2rem' }}>
             Un CV qui <span style={{ color: '#4fc3f7' }}>fait la différence</span>, en moins de 10 minutes
