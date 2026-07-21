@@ -135,22 +135,8 @@ export const TEMPLATES = [
     layout: 'sidebar-right',
     thumb: { left: '#f5f5f5', right: '#0E6655' }
   },
-  {
-    id: 'double-bande',
-    name: 'Double Bande',
-    category: 'Design',
-    colors: { primary: '#1A5276', accent: '#F39C12', bg: '#1A5276', text: '#fff', rtext: '#222' },
-    layout: 'double-band',
-    thumb: { left: '#1A5276', right: '#fff', accent: '#F39C12' }
-  },
-  {
-    id: 'timeline',
-    name: 'Timeline',
-    category: 'Design',
-    colors: { primary: '#6C3483', accent: '#A569BD', bg: '#ffffff', text: '#222', rtext: '#222' },
-    layout: 'timeline',
-    thumb: { left: '#fff', right: '#fff', accent: '#6C3483' }
-  },
+  
+  
   {
     id: 'tropical',
     name: 'Tropical',
