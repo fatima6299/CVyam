@@ -147,6 +147,7 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
   const [tplId, setTplId] = useState(TEMPLATES[0].id)
   const [filterCat, setFilterCat] = useState('Tous')
   const [customizeTab, setCustomizeTab] = useState('couleurs')
+  const [mobileView, setMobileView] = useState('form')
   const [data, setData] = useState({
     nom: user?.name || '', titre: '', email: user?.email || '',
     tel: '', adresse: '', ddn: '', profil: '', photo: '',
@@ -323,22 +324,22 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
   }
 
   return (
-    <div style={S.wrap}>
+    <div style={S.wrap} className="builder-wrap">
       {/* Sidebar */}
-      <div style={S.sidebar}>
-        <div style={S.sidebarTop}>
+      <div style={S.sidebar} className="builder-sidebar">
+        <div style={S.sidebarTop} className="builder-sidebar-top">
           <div style={S.logo}><span style={S.logoAccent}>CV</span>Builder</div>
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>by BDS Services</div>
         </div>
-        <div style={S.stepList}>
+        <div style={S.stepList} className="builder-steplist">
           {STEPS.map((s, i) => (
-            <div key={s} style={S.stepItem(step === i, step > i)} onClick={() => setStep(i)}>
+            <div key={s} style={S.stepItem(step === i, step > i)} className="builder-stepitem" onClick={() => setStep(i)}>
               <div style={S.stepDot(step === i, step > i)}>{step > i ? '✓' : i + 1}</div>
-              <div style={S.stepLabel(step === i, step > i)}>{s}</div>
+              <div style={S.stepLabel(step === i, step > i)} className="step-label-text">{s}</div>
             </div>
           ))}
         </div>
-        <div style={S.userBadge}>
+        <div style={S.userBadge} className="builder-userbadge">
           <div style={{ color: 'rgba(255,255,255,0.7)', marginBottom: 3 }}>{user?.name}</div>
           <div style={{ fontSize: 10, marginBottom: 6 }}>
             {user?.mode === 'free' ? 'Gratuit · Test' : user?.mode === 'auto' ? '500 FCFA · Autonome' : '3 000 FCFA · Assisté'}
@@ -349,9 +350,9 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
       </div>
 
       {/* Main */}
-      <div style={S.main}>
+      <div style={S.main} className="builder-main">
         {/* Form */}
-        <div style={S.form}>
+        <div style={S.form} className={`builder-form${mobileView === 'preview' ? ' mobile-hidden' : ''}`}>
           <div style={S.formHeader}>{STEPS[step]}</div>
           <div style={S.formBody}>
 
@@ -805,16 +806,22 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
           <div style={S.navBtns}>
             {step > 0 && <button style={S.btn} onClick={() => setStep(s => s - 1)}>← Retour</button>}
             {step < 8 && <button style={{ ...S.btnPrimary, marginLeft: 'auto' }} onClick={() => setStep(s => s + 1)}>Suivant →</button>}
+            <button className="builder-mobile-toggle" onClick={() => setMobileView('preview')} style={{ ...S.btn, marginLeft: step === 0 ? 'auto' : 0 }}>
+              👁 Aperçu
+            </button>
           </div>
         </div>
 
         {/* Preview */}
-        <div style={S.preview}>
+        <div style={S.preview} className={`builder-preview${mobileView === 'preview' ? ' mobile-active' : ''}`}>
           <div style={S.previewTop}>
-            <span>Prévisualisation en direct · {tpl.name}</span>
+            <span>
+              <button className="builder-mobile-toggle" onClick={() => setMobileView('form')} style={{ ...S.btn, padding: '4px 10px', marginRight: 8 }}>← Formulaire</button>
+              Prévisualisation en direct · {tpl.name}
+            </span>
             <span style={{ fontSize: 11, color: '#aaa' }}>Format A4</span>
           </div>
-          <div style={S.previewFrame}>
+          <div style={S.previewFrame} className="builder-preview-frame">
             <div style={S.cvCard} ref={previewRef}>
               <CVRenderer data={cvData} tpl={tpl} />
             </div>

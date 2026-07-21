@@ -22,12 +22,12 @@ services:
       - key: ADMIN_CODE
         sync: false
       - key: CORS_ORIGIN
-        value: https://cvyam-frontend.onrender.com
+        value: https://cv.onrender.com
       - key: PORT
         value: "4000"
 
   - type: web
-    name: cvyam-frontend
+    name: cv
     runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
