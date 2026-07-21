@@ -251,13 +251,19 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
     if (!isPaid) { setShowPayWall(true); return }
     setDownloading(true)
     try {
+      const el = previewRef.current
       await html2pdf().set({
         margin: 0,
         filename: `CV-${(data.nom || 'cvyam').replace(/\s+/g, '-')}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        html2canvas: {
+          scale: 2, useCORS: true,
+          width: el.scrollWidth, height: el.scrollHeight,
+          windowWidth: el.scrollWidth, windowHeight: el.scrollHeight,
+          scrollX: 0, scrollY: 0
+        },
         jsPDF: { unit: 'mm', format: data.customStyle.pageFormat === 'letter' ? 'letter' : 'a4', orientation: 'portrait' }
-      }).from(previewRef.current).save()
+      }).from(el).save()
     } finally {
       setDownloading(false)
     }
