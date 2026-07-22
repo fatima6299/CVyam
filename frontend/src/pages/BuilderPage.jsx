@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import html2pdf from 'html2pdf.js'
 import { TEMPLATES } from '../templates/templateList.js'
 import CVRenderer from '../templates/CVRenderer.jsx'
+import * as api from '../api.js'
 
 const STEPS = ['Template', 'Personnaliser', 'Identité', 'Formation', 'Expériences', 'Compétences', 'Langues', 'Autres sections', 'Télécharger']
 
@@ -142,7 +143,7 @@ function TemplateThumb({ tpl, selected, onClick }) {
   )
 }
 
-export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
+export default function BuilderPage({ user, isPaid, order, onPay, onLogout }) {
   const [step, setStep] = useState(0)
   const [tplId, setTplId] = useState(TEMPLATES[0].id)
   const [filterCat, setFilterCat] = useState('Tous')
@@ -165,7 +166,29 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
   })
   const [visibleExtras, setVisibleExtras] = useState([])
   const [showPayWall, setShowPayWall] = useState(false)
+  const [downloadError, setDownloadError] = useState('')
   const previewRef = useRef()
+  const draftReady = useRef(false)
+
+  // Recharge le brouillon sauvegardé sur cet appareil (si présent) pour reprendre là où l'utilisateur s'est arrêté.
+  useEffect(() => {
+    api.fetchDraft().then(draft => {
+      if (draft?.data) {
+        setData(d => ({ ...d, ...draft.data }))
+        if (draft.tplId) setTplId(draft.tplId)
+      }
+      draftReady.current = true
+    }).catch(() => { draftReady.current = true })
+  }, [])
+
+  // Sauvegarde automatique (avec un léger délai) à chaque modification, pour ne rien perdre en cas de fermeture/rafraîchissement.
+  useEffect(() => {
+    if (!draftReady.current) return
+    const timer = setTimeout(() => {
+      api.saveDraft(user?.name, user?.email, tplId, data).catch(() => {})
+    }, 1200)
+    return () => clearTimeout(timer)
+  }, [data, tplId])
 
   const tpl = TEMPLATES.find(t => t.id === tplId) || TEMPLATES[0]
   const cvData = {
@@ -250,6 +273,15 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
 
   const handleDownload = async () => {
     if (!isPaid) { setShowPayWall(true); return }
+    setDownloadError('')
+    if (order?.id) {
+      try {
+        await api.consumeDownload(order.id)
+      } catch (err) {
+        setDownloadError(err.message || 'Limite de téléchargements atteinte pour cette commande.')
+        return
+      }
+    }
     setDownloading(true)
     try {
       const el = previewRef.current
@@ -342,7 +374,7 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
         <div style={S.userBadge} className="builder-userbadge">
           <div style={{ color: 'rgba(255,255,255,0.7)', marginBottom: 3 }}>{user?.name}</div>
           <div style={{ fontSize: 10, marginBottom: 6 }}>
-            {user?.mode === 'free' ? 'Gratuit · Test' : user?.mode === 'auto' ? '500 FCFA · Autonome' : '3 000 FCFA · Assisté'}
+            {user?.mode === 'free' ? 'Gratuit · Test' : user?.mode === 'auto' ? '500 FCFA · Autonome' : '2 000 FCFA · Assisté'}
           </div>
           {user?.mode !== 'free' && isPaid && <div style={{ fontSize: 10, color: '#4caf50', marginBottom: 4 }}>✓ Paiement validé</div>}
           <button onClick={onLogout} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 11, cursor: 'pointer', padding: 0 }}>Déconnexion</button>
@@ -777,12 +809,17 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
                   <div style={{ background: '#d5f5e3', border: '0.5px solid #a9dfbf', borderRadius: 8, padding: 12, marginBottom: 14 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#1e8449', marginBottom: 3 }}>✓ Paiement validé</div>
                     <div style={{ fontSize: 12, color: '#196f3d' }}>Vous pouvez télécharger votre CV en PDF.</div>
+                    {order?.downloadLimit != null && (
+                      <div style={{ fontSize: 11, color: '#196f3d', marginTop: 4 }}>
+                        Téléchargements restants : {Math.max(0, order.downloadLimit - (order.downloadsUsed || 0))} / {order.downloadLimit}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div style={{ background: '#fef9e7', border: '0.5px solid #f9ca79', borderRadius: 8, padding: 12, marginBottom: 14 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#d68910', marginBottom: 3 }}>Paiement requis</div>
                     <div style={{ fontSize: 12, color: '#9a7d0a', marginBottom: 8 }}>
-                      Validez votre paiement de {user?.mode === 'auto' ? '500' : '3 000'} FCFA pour télécharger votre CV.
+                      Validez votre paiement de {user?.mode === 'auto' ? '500' : '2 000'} FCFA pour télécharger votre CV.
                     </div>
                     <button onClick={() => onPay(cvData)} style={{ background: '#d68910', color: '#fff', border: 'none', padding: '9px 18px', borderRadius: 99, fontSize: 13, fontWeight: 600, cursor: 'pointer', width: '100%' }}>
                       Procéder au paiement →
@@ -798,6 +835,9 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
                 }}>
                   {!isPaid ? '🔒 Paiement requis' : downloading ? 'Génération du PDF…' : '⬇ Télécharger le PDF'}
                 </button>
+                {downloadError && (
+                  <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 8 }}>{downloadError}</div>
+                )}
               </div>
             )}
           </div>
@@ -836,7 +876,7 @@ export default function BuilderPage({ user, isPaid, onPay, onLogout }) {
             <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
             <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, fontFamily: "'Space Grotesk', sans-serif" }}>Téléchargement verrouillé</div>
             <p style={{ fontSize: 13, color: '#666', lineHeight: 1.6, marginBottom: 20 }}>
-              Votre CV est prêt ! Pour télécharger le PDF, validez votre paiement de <strong>{user?.mode === 'auto' ? '500' : '3 000'} FCFA</strong> via Wave, Orange Money ou espèces.
+              Votre CV est prêt ! Pour télécharger le PDF, validez votre paiement de <strong>{user?.mode === 'auto' ? '500' : '2 000'} FCFA</strong> via Wave, Orange Money ou espèces.
             </p>
             <button onClick={() => { setShowPayWall(false); onPay(cvData) }} style={{ background: '#0a1628', color: '#fff', border: 'none', padding: '12px 28px', borderRadius: 99, fontWeight: 700, fontSize: 14, cursor: 'pointer', width: '100%', marginBottom: 8 }}>
               Payer maintenant →

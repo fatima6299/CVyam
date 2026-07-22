@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 const MODES = [
   { key: 'free', label: 'Je remplis moi-même', price: 'Gratuit', desc: 'Offre de lancement — période de test', locked: false },
   { key: 'auto', label: 'Je remplis moi-même', price: '500 FCFA', desc: 'Bientôt disponible', locked: true },
-  { key: 'assist', label: "BDS s'occupe de tout", price: '3 000 FCFA', desc: 'Bientôt disponible', locked: true },
+  { key: 'assist', label: "BDS s'occupe de tout", price: '2 000 FCFA', desc: 'Bientôt disponible', locked: true },
 ]
 
 export default function AuthPage({ onLogin, onLoginAdmin, onBack, admin }) {
@@ -11,6 +13,8 @@ export default function AuthPage({ onLogin, onLoginAdmin, onBack, admin }) {
   const [email, setEmail] = useState('')
   const [mode, setMode] = useState('free')
   const [code, setCode] = useState('')
+  const [touched, setTouched] = useState(false)
+  const emailValid = EMAIL_RE.test(email.trim())
 
   const S = {
     wrap: { minHeight: '100vh', background: '#0a1628', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' },
@@ -21,10 +25,11 @@ export default function AuthPage({ onLogin, onLoginAdmin, onBack, admin }) {
     sub: { fontSize: 13, color: 'rgba(255,255,255,0.45)', marginBottom: '1.8rem', lineHeight: 1.6 },
     label: { display: 'block', fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 6, letterSpacing: 0.04 },
     input: { width: '100%', padding: '10px 14px', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 14, marginBottom: '1rem' },
-    btn: { width: '100%', padding: '12px', background: '#4fc3f7', color: '#0a1628', border: 'none', borderRadius: 99, fontWeight: 700, fontSize: 15, fontFamily: "'Space Grotesk', sans-serif" },
-    back: { background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: '1.2rem', display: 'block', textAlign: 'center', width: '100%' },
+    btn: { width: '100%', padding: '12px', background: '#4fc3f7', color: '#0a1628', border: 'none', borderRadius: 99, fontWeight: 700, fontSize: 15, fontFamily: "'Space Grotesk', sans-serif", cursor: 'pointer' },
+    back: { background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: '1.2rem', display: 'block', textAlign: 'center', width: '100%', cursor: 'pointer' },
     modeBox: { display: 'flex', flexDirection: 'column', gap: 8, marginBottom: '1.4rem' },
     modeOpt: (selected) => ({ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', border: `1px solid ${selected ? '#4fc3f7' : 'rgba(255,255,255,0.1)'}`, borderRadius: 9, cursor: 'pointer', background: selected ? 'rgba(79,195,247,0.08)' : 'transparent', color: '#fff' }),
+    error: { fontSize: 12, color: '#e74c3c', marginTop: -10, marginBottom: 12 },
   }
 
   if (admin) return (
@@ -53,7 +58,10 @@ export default function AuthPage({ onLogin, onLoginAdmin, onBack, admin }) {
         <input style={S.input} placeholder="Prénom NOM" value={name} onChange={e => setName(e.target.value)} />
 
         <label style={S.label}>EMAIL</label>
-        <input style={S.input} placeholder="vous@email.com" value={email} onChange={e => setEmail(e.target.value)} />
+        <input style={{ ...S.input, ...(touched && !emailValid ? { borderColor: '#e74c3c' } : {}) }}
+          type="email" placeholder="vous@email.com" value={email}
+          onChange={e => setEmail(e.target.value)} onBlur={() => setTouched(true)} />
+        {touched && !emailValid && <div style={S.error}>Adresse email invalide</div>}
 
         <label style={S.label}>MODE DE CRÉATION</label>
         <div style={S.modeBox}>
@@ -83,7 +91,10 @@ export default function AuthPage({ onLogin, onLoginAdmin, onBack, admin }) {
           ))}
         </div>
 
-        <button style={S.btn} onClick={() => name && email && onLogin(name, email, mode)}>
+        <button style={S.btn} onClick={() => {
+          setTouched(true)
+          if (name.trim() && emailValid) onLogin(name.trim(), email.trim(), mode)
+        }}>
           Commencer →
         </button>
         <button style={S.back} onClick={onBack}>← Retour</button>

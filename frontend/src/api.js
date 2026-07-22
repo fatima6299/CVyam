@@ -1,7 +1,8 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api'
 
 // Secret propre à cet appareil/navigateur, généré une fois et jamais affiché ni demandé à l'utilisateur.
-// Sert à prouver que c'est bien le même appareil qui a créé la commande avant de renvoyer un CV payé.
+// Sert à prouver que c'est bien le même appareil qui a créé la commande avant de renvoyer un CV payé,
+// et à retrouver le brouillon en cours sur ce même appareil.
 function getClientToken() {
   let token = localStorage.getItem('cvyam_client_token')
   if (!token) {
@@ -41,3 +42,15 @@ export const createOrder = (order) =>
 
 export const validateOrder = (id) =>
   request(`/orders/${id}/validate`, { method: 'PATCH' })
+
+export const consumeDownload = (id) =>
+  request(`/orders/${id}/consume-download`, { method: 'POST' })
+
+export const fetchDraft = () =>
+  request(`/drafts/${encodeURIComponent(getClientToken())}`)
+
+export const saveDraft = (clientName, clientEmail, tplId, data) =>
+  request(`/drafts/${encodeURIComponent(getClientToken())}`, {
+    method: 'PUT',
+    body: JSON.stringify({ clientName, clientEmail, tplId, data })
+  })

@@ -16,8 +16,8 @@ const steps = [
 ]
 
 const faqs = [
-  { q: 'Est-ce vraiment gratuit ?', a: 'Oui, pendant la période de test, la création et le téléchargement de votre CV sont entièrement gratuits. Les offres Autonome (500 FCFA) et Assisté (3 000 FCFA) seront activées plus tard.' },
-  { q: 'Puis-je changer de template après paiement ?', a: 'Oui, vous pouvez changer de template et modifier votre contenu à tout moment depuis le builder — le PDF suit vos dernières modifications.' },
+  { q: 'Est-ce vraiment gratuit ?', a: 'Oui, pendant la période de test, la création et le téléchargement de votre CV sont entièrement gratuits. Les offres Autonome (500 FCFA) et Assisté (2 000 FCFA) seront activées plus tard.' },
+  { q: 'Combien de fois puis-je télécharger mon CV ?', a: 'En mode Gratuit (période de test) : autant de fois que vous voulez. En mode Autonome (500 FCFA) : 2 téléchargements au total. En mode Assisté (2 000 FCFA) : 3 téléchargements au total.' },
   { q: 'Mes données sont-elles privées ?', a: 'Votre CV n\'est visible que par vous et par un administrateur BDS Services pour la validation du paiement. Il n\'est jamais partagé publiquement.' },
   { q: 'Combien de temps pour créer mon CV ?', a: 'Comptez environ 10 minutes en mode Autonome. En mode Assisté, notre équipe rédige et optimise votre contenu pour vous.' },
 ]
@@ -25,7 +25,7 @@ const faqs = [
 const plans = [
   { name: 'Gratuit', price: '0', unit: 'FCFA', desc: 'Vous remplissez vous-même', features: ['Accès aux 21 templates', 'Formulaire guidé étape par étape', 'Prévisualisation en direct', 'Téléchargement PDF'], color: '#1a5276', badge: 'Offre de lancement' },
   { name: 'Autonome', price: '500', unit: 'FCFA', desc: 'Vous remplissez vous-même', features: ['Accès aux 21 templates', 'Formulaire guidé étape par étape', 'Prévisualisation en direct', 'Téléchargement PDF'], color: '#1a5276', locked: true },
-  { name: 'Assisté', price: '3 000', unit: 'FCFA', desc: 'BDS s\'occupe de tout pour vous', features: ['Tout le plan Autonome', 'Rédaction professionnelle', 'Optimisation du contenu', 'Support WhatsApp'], color: '#117a65', locked: true },
+  { name: 'Assisté', price: '2 000', unit: 'FCFA', desc: 'FTD s\'occupe de tout pour vous', features: ['Tout le plan Autonome', 'Rédaction professionnelle', 'Optimisation du contenu', 'Support WhatsApp'], color: '#117a65', locked: true },
 ]
 
 export default function LandingPage({ onStart, onAdmin }) {

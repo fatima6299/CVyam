@@ -25,4 +25,20 @@ await pool.query(`
 // empêche de consulter le CV de quelqu'un d'autre en devinant simplement son email.
 await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS client_token TEXT`)
 
+// Nombre de téléchargements déjà utilisés / autorisés pour cette commande (null = illimité, ex: mode gratuit).
+await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS downloads_used INTEGER NOT NULL DEFAULT 0`)
+await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS download_limit INTEGER`)
+
+// Brouillon en cours (avant paiement) sauvegardé par appareil, pour reprendre là où l'utilisateur s'est arrêté.
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS drafts (
+    client_token TEXT PRIMARY KEY,
+    client_name TEXT,
+    client_email TEXT,
+    tpl_id TEXT,
+    data JSONB NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL
+  )
+`)
+
 export default pool

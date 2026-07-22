@@ -34,7 +34,7 @@ export default function App() {
   const goPayment = (data) => { setCvData(data); setPage('payment') }
 
   const confirmPayment = async (method) => {
-    const amount = user?.mode === 'auto' ? 500 : 3000
+    const amount = user?.mode === 'auto' ? 500 : 2000
     const { id } = await api.createOrder({ client: user, method, amount, cvData })
     setPage('builder')
     return id
@@ -54,6 +54,7 @@ export default function App() {
     <BuilderPage
       user={user}
       isPaid={user?.mode === 'free' || !!userOrder}
+      order={userOrder}
       onPay={goPayment}
       onLogout={() => { setUser(null); setPage('landing') }}
     />
