@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import LandingPage from './pages/LandingPage.jsx'
 import AuthPage from './pages/AuthPage.jsx'
+import LoginPage from './pages/LoginPage.jsx'
 import BuilderPage from './pages/BuilderPage.jsx'
 import AdminPage from './pages/AdminPage.jsx'
 import PaymentPage from './pages/PaymentPage.jsx'
@@ -33,6 +34,11 @@ export default function App() {
 
   const login = (name, email, mode) => {
     setUser({ name, email, mode, id: Date.now() })
+    navigate('builder')
+  }
+
+  const onAuthSuccess = (u) => {
+    setUser(u)
     navigate('builder')
   }
 
@@ -96,7 +102,8 @@ export default function App() {
 
   let pageContent = null
   if (page === 'landing') pageContent = <LandingPage onStart={() => navigate('auth')} onAdmin={() => navigate('auth-admin')} />
-  else if (page === 'auth') pageContent = <AuthPage onLogin={login} onBack={goBack} />
+  else if (page === 'auth') pageContent = <AuthPage onLogin={login} onBack={goBack} onShowLogin={() => navigate('login')} />
+  else if (page === 'login') pageContent = <LoginPage onAuthSuccess={onAuthSuccess} onBack={goBack} />
   else if (page === 'auth-admin') pageContent = <AuthPage admin onLoginAdmin={loginAdmin} onBack={goBack} />
   else if (page === 'admin') pageContent = <AdminPage orders={orders} onValidate={validatePayment} onRefresh={refreshOrders} onBack={goBack} onLogout={() => { setUser(null); navigate('landing') }} />
   else if (page === 'payment') pageContent = <PaymentPage user={user} cvData={cvData} onConfirm={confirmPayment} onBack={goBack} />

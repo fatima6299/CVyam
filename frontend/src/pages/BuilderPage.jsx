@@ -4,7 +4,7 @@ import { TEMPLATES } from '../templates/templateList.js'
 import CVRenderer from '../templates/CVRenderer.jsx'
 import * as api from '../api.js'
 
-const STEPS = ['Template', 'Identité', 'Formation', 'Expériences', 'Compétences', 'Langues', 'Autres sections', 'Personnaliser', 'Télécharger']
+const STEPS = ['Template', 'Personnaliser', 'Personnaliser', 'Identité', 'Formation', 'Expériences', 'Compétences', 'Langues', 'Autres sections', 'Télécharger']
 
 const COLOR_PRESETS = ['#1A5276', '#1E8449', '#78281F', '#6C3483', '#7D6608', '#2C3E50', '#117A65', '#E74C3C']
 

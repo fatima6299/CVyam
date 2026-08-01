@@ -18,6 +18,8 @@ async function request(path, options) {
   if (token) {
     headers['x-client-token'] = token
   }
+  const authToken = localStorage.getItem('cvyam_token')
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`
   const res = await fetch(`${API_URL}${path}`, {
     headers,
     ...options
@@ -33,6 +35,27 @@ export const loginAdmin = (code) =>
   request('/auth/admin', { method: 'POST', body: JSON.stringify({ code }) })
     .then(() => true)
     .catch(() => false)
+
+export const setAuthToken = (token) => {
+  if (token) localStorage.setItem('cvyam_token', token)
+  else localStorage.removeItem('cvyam_token')
+}
+
+export const register = async ({ name, email, password }) => {
+  const res = await request('/users/register', { method: 'POST', body: JSON.stringify({ name, email, password }) })
+  if (res && res.token) setAuthToken(res.token)
+  return res
+}
+
+export const login = async ({ email, password }) => {
+  const res = await request('/users/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+  if (res && res.token) setAuthToken(res.token)
+  return res
+}
+
+export const logout = () => setAuthToken(null)
+
+export const mergeClientToken = (clientToken) => request('/users/merge', { method: 'POST', body: JSON.stringify({ client_token: clientToken }) })
 
 export const fetchOrders = () => request('/orders')
 

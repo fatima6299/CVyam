@@ -3,6 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import rateLimit from 'express-rate-limit'
 import authRoutes from './routes/auth.js'
+import usersRoutes from './routes/users.js'
 import ordersRoutes from './routes/orders.js'
 import draftsRoutes from './routes/drafts.js'
 
@@ -29,6 +30,7 @@ app.use(express.json({ limit: '8mb' }))
 app.use(limiter)
 
 app.use('/api/auth', adminLimiter, authRoutes)
+app.use('/api/users', usersRoutes)
 app.use('/api/orders', ordersRoutes)
 app.use('/api/drafts', draftsRoutes)
 

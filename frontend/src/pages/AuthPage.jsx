@@ -8,7 +8,7 @@ const MODES = [
   { key: 'assist', label: "BDS s'occupe de tout", price: '2 000 FCFA', desc: 'Bientôt disponible', locked: true },
 ]
 
-export default function AuthPage({ onLogin, onLoginAdmin, onBack, admin }) {
+export default function AuthPage({ onLogin, onLoginAdmin, onBack, admin, onShowLogin }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [mode, setMode] = useState('free')
@@ -98,6 +98,7 @@ export default function AuthPage({ onLogin, onLoginAdmin, onBack, admin }) {
           Commencer →
         </button>
         <button style={S.back} onClick={onBack}>← Retour</button>
+        <button style={{ ...S.back, marginTop: 6 }} onClick={onShowLogin}>Se connecter / S'inscrire</button>
       </div>
     </div>
   )

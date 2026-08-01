@@ -25,6 +25,21 @@ await pool.query(`
 // empêche de consulter le CV de quelqu'un d'autre en devinant simplement son email.
 await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS client_token TEXT`)
 
+// Users table for registered accounts
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    name TEXT,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
+  )
+`)
+
+// Associate drafts and orders optionally with a user
+await pool.query(`ALTER TABLE drafts ADD COLUMN IF NOT EXISTS user_id TEXT`)
+await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_id TEXT`)
+
 // Nombre de téléchargements déjà utilisés / autorisés pour cette commande (null = illimité, ex: mode gratuit).
 await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS downloads_used INTEGER NOT NULL DEFAULT 0`)
 await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS download_limit INTEGER`)
