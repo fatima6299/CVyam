@@ -35,9 +35,9 @@ export default function AuthPage({ onLogin, onLoginAdmin, onBack, admin }) {
   if (admin) return (
     <div style={S.wrap}>
       <div style={S.card}>
-        <div style={S.logo}><span style={S.logoAccent}>CV</span>Builder</div>
+        <div style={S.logo}><span style={S.logoAccent}>CV</span>Yam</div>
         <h2 style={S.h2}>Espace Admin</h2>
-        <p style={S.sub}>Entrez le code administrateur BDS pour accéder au tableau de bord.</p>
+        <p style={S.sub}>Entrez le code administrateur FTD pour accéder au tableau de bord.</p>
         <label style={S.label}>CODE ADMIN</label>
         <input style={S.input} type="password" placeholder="••••••••" value={code} onChange={e => setCode(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && onLoginAdmin(code)} />

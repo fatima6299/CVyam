@@ -42,11 +42,11 @@ export default function PaymentPage({ user, cvData, onConfirm, onBack }) {
           <h2 style={{ ...S.h2, textAlign: 'center', marginBottom: 10 }}>Demande de paiement envoyée !</h2>
           <div style={{ fontSize: 13, color: '#666', lineHeight: 1.7, marginBottom: 20 }}>
             Votre commande <strong>{orderId}</strong> a été enregistrée.<br/>
-            Un administrateur BDS va valider votre paiement via <strong>{METHODS.find(m => m.id === method)?.label}</strong>.<br/>
+            Un administrateur FTD va valider votre paiement via <strong>{METHODS.find(m => m.id === method)?.label}</strong>.<br/>
             Une fois validé, votre lien de téléchargement sera disponible.
           </div>
           <div style={{ background: '#f7f7f6', border: '0.5px solid #e2e2de', borderRadius: 10, padding: '12px 16px', textAlign: 'left', fontSize: 12, color: '#555', marginBottom: 20 }}>
-            <div style={{ fontWeight: 600, marginBottom: 6, color: '#222' }}>Coordonnées de paiement BDS</div>
+            <div style={{ fontWeight: 600, marginBottom: 6, color: '#222' }}>Coordonnées de paiement FTD</div>
             <div>📱 Wave / Orange Money : <strong>+221 70 103 01 64</strong></div>
             <div style={{ marginTop: 4 }}>💬 WhatsApp : <strong>+221 70 103 01 64</strong></div>
             <div style={{ marginTop: 4 }}>📝 Référence : <strong>{orderId}</strong></div>
@@ -60,7 +60,7 @@ export default function PaymentPage({ user, cvData, onConfirm, onBack }) {
   return (
     <div style={S.wrap}>
       <div style={S.card}>
-        <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>Paiement sécurisé · BDS Services</div>
+        <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>Paiement sécurisé FTD Services</div>
         <h2 style={S.h2}>Finalisez votre commande</h2>
         <div style={{ fontSize: 13, color: '#666', marginBottom: 4 }}>
           Mode : <strong>{user?.mode === 'auto' ? 'Autonome' : 'Assisté'}</strong>

@@ -28,7 +28,8 @@ router.get('/', async (req, res, next) => {
 
 router.get('/paid', async (req, res, next) => {
   try {
-    const { email, token } = req.query
+    const { email } = req.query
+    const token = req.get('x-client-token')
     if (!email || !token) return res.status(400).json({ error: 'email et token requis' })
     const { rows } = await pool.query(
       "SELECT * FROM orders WHERE client_email = $1 AND client_token = $2 AND status = 'paid' ORDER BY date DESC LIMIT 1",

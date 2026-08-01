@@ -4,7 +4,7 @@ import { TEMPLATES } from '../templates/templateList.js'
 import CVRenderer from '../templates/CVRenderer.jsx'
 import * as api from '../api.js'
 
-const STEPS = ['Template', 'Personnaliser', 'Identité', 'Formation', 'Expériences', 'Compétences', 'Langues', 'Autres sections', 'Télécharger']
+const STEPS = ['Template', 'Identité', 'Formation', 'Expériences', 'Compétences', 'Langues', 'Autres sections', 'Personnaliser', 'Télécharger']
 
 const COLOR_PRESETS = ['#1A5276', '#1E8449', '#78281F', '#6C3483', '#7D6608', '#2C3E50', '#117A65', '#E74C3C']
 
@@ -360,7 +360,7 @@ export default function BuilderPage({ user, isPaid, order, onPay, onLogout }) {
       {/* Sidebar */}
       <div style={S.sidebar} className="builder-sidebar">
         <div style={S.sidebarTop} className="builder-sidebar-top">
-          <div style={S.logo}><span style={S.logoAccent}>CV</span>Builder</div>
+          <div style={S.logo}><span style={S.logoAccent}>CV</span>Yam</div>
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>by BDS Services</div>
         </div>
         <div style={S.stepList} className="builder-steplist">

@@ -1,16 +1,34 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import rateLimit from 'express-rate-limit'
 import authRoutes from './routes/auth.js'
 import ordersRoutes from './routes/orders.js'
 import draftsRoutes from './routes/drafts.js'
 
 const app = express()
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Trop de requêtes, réessayez dans quelques minutes' }
+})
+
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Trop de tentatives, réessayez dans quelques minutes' }
+})
+
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }))
 app.use(express.json({ limit: '8mb' }))
+app.use(limiter)
 
-app.use('/api/auth', authRoutes)
+app.use('/api/auth', adminLimiter, authRoutes)
 app.use('/api/orders', ordersRoutes)
 app.use('/api/drafts', draftsRoutes)
 

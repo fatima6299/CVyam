@@ -13,8 +13,13 @@ function getClientToken() {
 }
 
 async function request(path, options) {
+  const headers = { 'Content-Type': 'application/json' }
+  const token = getClientToken()
+  if (token) {
+    headers['x-client-token'] = token
+  }
   const res = await fetch(`${API_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     ...options
   })
   if (!res.ok) {
@@ -32,7 +37,7 @@ export const loginAdmin = (code) =>
 export const fetchOrders = () => request('/orders')
 
 export const fetchPaidOrder = (email) =>
-  request(`/orders/paid?email=${encodeURIComponent(email)}&token=${encodeURIComponent(getClientToken())}`)
+  request(`/orders/paid?email=${encodeURIComponent(email)}`)
 
 export const createOrder = (order) =>
   request('/orders', {
