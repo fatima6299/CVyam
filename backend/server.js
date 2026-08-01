@@ -25,7 +25,20 @@ const adminLimiter = rateLimit({
   message: { error: 'Trop de tentatives, réessayez dans quelques minutes' }
 })
 
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }))
+// Support comma-separated origins or '*' via CORS_ORIGIN env var.
+const rawCors = process.env.CORS_ORIGIN || 'http://localhost:5173'
+const allowedOrigins = rawCors.split(',').map(s => s.trim()).filter(Boolean)
+console.log('Allowed CORS origins:', allowedOrigins)
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true)
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return callback(null, true)
+    return callback(new Error('Not allowed by CORS'))
+  },
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-client-token'],
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  credentials: false
+}))
 app.use(express.json({ limit: '8mb' }))
 app.use(limiter)
 
