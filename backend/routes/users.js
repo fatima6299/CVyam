@@ -8,6 +8,10 @@ const router = Router()
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_jwt_secret'
 
+function serializeUser(row) {
+  return { id: row.id, name: row.name, email: row.email, createdAt: row.created_at }
+}
+
 function authMiddleware(req, res, next) {
   const h = req.headers.authorization || ''
   const m = h.match(/^Bearer (.+)$/)
@@ -18,6 +22,27 @@ function authMiddleware(req, res, next) {
     next()
   } catch (err) { return res.status(401).json({ ok: false, error: 'Invalid token' }) }
 }
+
+router.get('/', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT id, name, email, created_at FROM users ORDER BY created_at DESC')
+    res.json(rows.map(serializeUser))
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ ok: false, error: 'Erreur serveur' })
+  }
+})
+
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT id, name, email, created_at FROM users WHERE id = $1', [req.user.id])
+    if (rows.length === 0) return res.status(404).json({ ok: false, error: 'Utilisateur introuvable' })
+    res.json({ ok: true, user: serializeUser(rows[0]) })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ ok: false, error: 'Erreur serveur' })
+  }
+})
 
 router.post('/register', async (req, res) => {
   const { name, email, password } = req.body || {}

@@ -12,6 +12,7 @@ export default function App() {
   const [user, setUser] = useState(null)
   const [cvData, setCvData] = useState(null)
   const [orders, setOrders] = useState([])
+  const [registeredUsers, setRegisteredUsers] = useState([])
   const [userOrder, setUserOrder] = useState(null)
   // Use browser history so back button stays inside the app
   const goBack = useCallback(() => {
@@ -26,6 +27,7 @@ export default function App() {
   const allowExitRef = useRef(false)
 
   const refreshOrders = () => api.fetchOrders().then(setOrders).catch(() => setOrders([]))
+  const refreshUsers = () => api.fetchUsers().then(setRegisteredUsers).catch(() => setRegisteredUsers([]))
   const refreshUserOrder = (email) => api.fetchPaidOrder(email).then(setUserOrder).catch(() => setUserOrder(null))
 
   useEffect(() => {
@@ -44,8 +46,12 @@ export default function App() {
 
   const loginAdmin = async (code) => {
     const ok = await api.loginAdmin(code)
-    if (ok) { setUser({ admin: true }); refreshOrders(); navigate('admin') }
-    else alert('Code incorrect')
+    if (ok) {
+      setUser({ admin: true })
+      refreshOrders()
+      refreshUsers()
+      navigate('admin')
+    } else alert('Code incorrect')
   }
 
   const goPayment = (data) => { setCvData(data); navigate('payment') }
@@ -105,7 +111,7 @@ export default function App() {
   else if (page === 'auth') pageContent = <AuthPage onLogin={login} onBack={goBack} onShowLogin={() => navigate('login')} />
   else if (page === 'login') pageContent = <LoginPage onAuthSuccess={onAuthSuccess} onBack={goBack} />
   else if (page === 'auth-admin') pageContent = <AuthPage admin onLoginAdmin={loginAdmin} onBack={goBack} />
-  else if (page === 'admin') pageContent = <AdminPage orders={orders} onValidate={validatePayment} onRefresh={refreshOrders} onBack={goBack} onLogout={() => { setUser(null); navigate('landing') }} />
+  else if (page === 'admin') pageContent = <AdminPage users={registeredUsers} orders={orders} onValidate={validatePayment} onRefresh={() => { refreshOrders(); refreshUsers() }} onBack={goBack} onLogout={() => { setUser(null); navigate('landing') }} />
   else if (page === 'payment') pageContent = <PaymentPage user={user} cvData={cvData} onConfirm={confirmPayment} onBack={goBack} />
   else if (page === 'builder') pageContent = (
     <BuilderPage

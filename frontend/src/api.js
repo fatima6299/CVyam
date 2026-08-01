@@ -36,6 +36,10 @@ export const loginAdmin = (code) =>
     .then(() => true)
     .catch(() => false)
 
+export const fetchUsers = () => request('/users')
+
+export const fetchMe = () => request('/users/me')
+
 export const setAuthToken = (token) => {
   if (token) localStorage.setItem('cvyam_token', token)
   else localStorage.removeItem('cvyam_token')

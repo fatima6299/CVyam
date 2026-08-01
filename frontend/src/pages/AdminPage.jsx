@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 const STATUS = { pending: { label: 'En attente', color: '#d68910', bg: '#fef9e7' }, paid: { label: 'Validé', color: '#1e8449', bg: '#d5f5e3' } }
 
-export default function AdminPage({ orders, onValidate, onRefresh, onBack, onLogout }) {
+export default function AdminPage({ orders, users, onValidate, onRefresh, onBack, onLogout }) {
   const [filter, setFilter] = useState('all')
 
   const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter)
@@ -19,6 +19,7 @@ export default function AdminPage({ orders, onValidate, onRefresh, onBack, onLog
     statVal: { fontSize: 26, fontWeight: 700, color: '#0a1628', fontFamily: "'Space Grotesk', sans-serif", marginBottom: 3 },
     statLabel: { fontSize: 12, color: '#888' },
     tableWrap: { background: '#fff', border: '0.5px solid #e2e2de', borderRadius: 14, overflow: 'hidden' },
+    section: { marginBottom: 24 },
     tableHead: { background: '#f7f7f6', borderBottom: '0.5px solid #e2e2de', padding: '10px 18px', display: 'grid', gridTemplateColumns: '1fr 1fr 80px 80px 100px 100px', gap: 8, fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.04em' },
     tableRow: { padding: '12px 18px', display: 'grid', gridTemplateColumns: '1fr 1fr 80px 80px 100px 100px', gap: 8, borderBottom: '0.5px solid #f0f0f0', alignItems: 'center', fontSize: 13 },
     badge: (s) => ({ display: 'inline-block', padding: '3px 8px', borderRadius: 99, fontSize: 11, fontWeight: 600, background: STATUS[s]?.bg || '#eee', color: STATUS[s]?.color || '#666' }),
@@ -63,6 +64,25 @@ export default function AdminPage({ orders, onValidate, onRefresh, onBack, onLog
               {f === 'all' ? 'Toutes' : f === 'pending' ? 'En attente' : 'Validées'}
             </button>
           ))}
+        </div>
+
+        <div style={S.section}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#0a1628', marginBottom: 10 }}>Utilisateurs inscrits</div>
+          <div style={S.tableWrap}>
+            <div style={S.tableHead}>
+              <div>Nom</div><div>Email</div><div>Date d'inscription</div>
+            </div>
+            {(!users || users.length === 0) && (
+              <div style={{ padding: '32px', textAlign: 'center', color: '#aaa', fontSize: 13 }}>Aucun utilisateur inscrit pour l'instant</div>
+            )}
+            {users && users.map(u => (
+              <div key={u.id} style={{ ...S.tableRow, gridTemplateColumns: '1fr 1fr 140px' }}>
+                <div style={{ fontWeight: 600, color: '#111' }}>{u.name || '—'}</div>
+                <div style={{ fontSize: 12, color: '#555', wordBreak: 'break-all' }}>{u.email}</div>
+                <div style={{ fontSize: 12, color: '#888' }}>{u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : '—'}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div style={S.tableWrap}>
