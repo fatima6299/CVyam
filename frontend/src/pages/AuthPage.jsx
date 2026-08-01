@@ -93,7 +93,7 @@ export default function AuthPage({ onLogin, onLoginAdmin, onBack, admin, onShowL
 
         <button style={S.btn} onClick={() => {
           setTouched(true)
-          if (name.trim() && emailValid) onLogin(name.trim(), email.trim(), mode)
+          if (name.trim() && emailValid) onShowLogin()
         }}>
           Commencer →
         </button>

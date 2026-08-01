@@ -32,9 +32,12 @@ await pool.query(`
     name TEXT,
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    mode TEXT NOT NULL DEFAULT 'free',
     created_at TIMESTAMPTZ NOT NULL
   )
 `)
+
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS mode TEXT DEFAULT 'free'`)
 
 // Associate drafts and orders optionally with a user
 await pool.query(`ALTER TABLE drafts ADD COLUMN IF NOT EXISTS user_id TEXT`)

@@ -45,8 +45,8 @@ export const setAuthToken = (token) => {
   else localStorage.removeItem('cvyam_token')
 }
 
-export const register = async ({ name, email, password }) => {
-  const res = await request('/users/register', { method: 'POST', body: JSON.stringify({ name, email, password }) })
+export const register = async ({ name, email, password, mode }) => {
+  const res = await request('/users/register', { method: 'POST', body: JSON.stringify({ name, email, password, mode }) })
   if (res && res.token) setAuthToken(res.token)
   return res
 }
