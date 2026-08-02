@@ -33,7 +33,10 @@ app.use(cors({
   origin: function(origin, callback) {
     if (!origin) return callback(null, true)
     if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return callback(null, true)
-    return callback(new Error('Not allowed by CORS'))
+    // Don't throw an error here — return false so CORS middleware
+    // simply won't set CORS headers (browser will block the request).
+    // Throwing an Error caused a 500 response on preflight requests.
+    return callback(null, false)
   },
   allowedHeaders: ['Content-Type', 'Authorization', 'x-client-token'],
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
