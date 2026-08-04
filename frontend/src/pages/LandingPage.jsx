@@ -2,9 +2,9 @@ import React from 'react'
 import TemplateShowcase, { HeroFan } from '../components/TemplateShowcase.jsx'
 
 const features = [
-  { icon: '🎨', title: '21 templates professionnels', desc: 'Modernes, classiques, créatifs — pour tous les profils' },
+  { icon: '🎨', title: '21 templates professionnels', desc: 'Modernes, classiques, créatifs  pour tous les profils' },
   { icon: '⚡', title: 'Prévisualisation en direct', desc: 'Votre CV se construit sous vos yeux en temps réel' },
-  { icon: '📄', title: 'Export PDF haute qualité', desc: 'Téléchargement gratuit pendant la période de test' },
+  { icon: '📄', title: 'Export PDF haute qualité', desc: 'Téléchargement gratuit pendant la période d\'évaluation' },
   { icon: '🔒', title: 'Accès sécurisé', desc: 'Votre CV est privé et accessible uniquement par vous' },
 ]
 
@@ -12,11 +12,10 @@ const steps = [
   { n: '1', title: 'Choisissez un template', desc: 'Parcourez 20 modèles professionnels et sélectionnez celui qui vous ressemble.' },
   { n: '2', title: 'Remplissez vos informations', desc: 'Un formulaire guidé étape par étape : identité, formations, expériences, compétences.' },
   { n: '3', title: 'Prévisualisez en direct', desc: 'Votre CV se construit sous vos yeux, exactement comme il sera imprimé.' },
-  { n: '4', title: 'Téléchargez votre PDF', desc: 'Téléchargement gratuit pendant la période de test, aucun paiement requis.' },
+  { n: '4', title: 'Téléchargez votre PDF', desc: 'Téléchargement gratuit pendant la période d\'évaluation, aucun paiement requis.' },
 ]
 
 const faqs = [
-  { q: 'Est-ce vraiment gratuit ?', a: 'Oui, pendant la période de test, la création et le téléchargement de votre CV sont entièrement gratuits. Les offres Autonome (500 FCFA) et Assisté (2 000 FCFA) seront activées plus tard.' },
   { q: 'Combien de fois puis-je télécharger mon CV ?', a: 'En mode Gratuit (période de test) : autant de fois que vous voulez. En mode Autonome (500 FCFA) : 2 téléchargements au total. En mode Assisté (2 000 FCFA) : 3 téléchargements au total.' },
   { q: 'Mes données sont-elles privées ?', a: 'Votre CV n\'est visible que par vous et par un administrateur BDS Services pour la validation du paiement. Il n\'est jamais partagé publiquement.' },
   { q: 'Combien de temps pour créer mon CV ?', a: 'Comptez environ 10 minutes en mode Autonome. En mode Assisté, notre équipe rédige et optimise votre contenu pour vous.' },
@@ -63,7 +62,7 @@ export default function LandingPage({ onStart, onAdmin }) {
             onMouseOut={e => e.target.style.opacity = 1}>
             Créer mon CV →
           </button>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 12 }}>Gratuit pendant la période de test · Aucun paiement requis</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 12 }}>Gratuit pendant la période d'evaluation. </div>
         </div>
         <div style={{ flex: '0 0 auto' }}>
           <HeroFan />
