@@ -19,7 +19,7 @@ const limiter = rateLimit({
 
 const adminLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 50,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Trop de tentatives, réessayez dans quelques minutes' }
@@ -29,19 +29,24 @@ const adminLimiter = rateLimit({
 const rawCors = process.env.CORS_ORIGIN || 'http://localhost:5173'
 const allowedOrigins = rawCors.split(',').map(s => s.trim()).filter(Boolean)
 console.log('Allowed CORS origins:', allowedOrigins)
-app.use(cors({
+
+const corsOptions = {
   origin: function(origin, callback) {
+    // Log origin for easier debugging in production
+    console.log('CORS check for origin:', origin)
+    // Allow non-browser requests (curl, server-to-server) where origin is undefined
     if (!origin) return callback(null, true)
     if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return callback(null, true)
-    // Don't throw an error here — return false so CORS middleware
-    // simply won't set CORS headers (browser will block the request).
-    // Throwing an Error caused a 500 response on preflight requests.
     return callback(null, false)
   },
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-client-token'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-client-token', 'Origin'],
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   credentials: false
-}))
+}
+
+app.use(cors(corsOptions))
+// Ensure preflight requests are handled for all routes
+app.options('*', cors(corsOptions))
 app.use(express.json({ limit: '8mb' }))
 app.use(limiter)
 
@@ -58,4 +63,4 @@ app.use((err, req, res, next) => {
 })
 
 const port = process.env.PORT || 4000
-app.listen(port, () => console.log(`CVBuilder API en écoute sur http://localhost:${port}`))
+app.listen(port, () => console.log(`CVYam API en écoute sur http://localhost:${port}`))
