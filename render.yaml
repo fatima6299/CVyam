@@ -22,7 +22,8 @@ services:
       - key: ADMIN_CODE_HASH
         sync: false
       - key: CORS_ORIGIN
-        value: https://cv.onrender.com
+        #value: https://cv.onrender.com
+        value: https://cv-1iof.onrender.com,http://localhost:5173
       - key: PORT
         value: "4000"
 
